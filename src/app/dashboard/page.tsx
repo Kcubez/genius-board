@@ -180,38 +180,21 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <KpiCards kpiData={kpiData} />
 
-      {/* Main Content Grid - stacked on mobile, side-by-side on desktop */}
-      <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr] gap-4 lg:gap-6">
-        {/* Filter Panel - collapsible on mobile */}
-        <details className="lg:hidden group" open>
-          <summary className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer list-none">
-            <span className="font-medium flex items-center gap-2">
-              <FilterIcon className="h-4 w-4" />
-              {t('filter.title')}
-              {filters.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  {filters.length}
-                </Badge>
-              )}
-            </span>
-            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
-          </summary>
-          <div className="mt-3">
-            <FilterPanel
-              columns={csvData.columns}
-              filters={filters}
-              onAddFilter={handleAddFilter}
-              onUpdateFilter={handleUpdateFilter}
-              onRemoveFilter={handleRemoveFilter}
-              onClearAll={handleClearAllFilters}
-              onSetPriorityColumn={setPriorityColumn}
-              priorityColumn={priorityColumn}
-            />
-          </div>
-        </details>
-
-        {/* Filter Panel - always visible on desktop */}
-        <aside className="hidden lg:block space-y-4">
+      {/* Filter Panel - collapsible on all screen sizes */}
+      <details className="group" open>
+        <summary className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer list-none hover:bg-muted/70 transition-colors">
+          <span className="font-medium flex items-center gap-2">
+            <FilterIcon className="h-4 w-4" />
+            {t('filter.title')}
+            {filters.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {filters.length} active
+              </Badge>
+            )}
+          </span>
+          <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="mt-3">
           <FilterPanel
             columns={csvData.columns}
             filters={filters}
@@ -222,36 +205,36 @@ export default function DashboardPage() {
             onSetPriorityColumn={setPriorityColumn}
             priorityColumn={priorityColumn}
           />
-        </aside>
-
-        {/* Main Content - Charts & Table */}
-        <div className="space-y-4 lg:space-y-6 min-w-0">
-          <Tabs defaultValue="charts" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="charts">Charts</TabsTrigger>
-              <TabsTrigger value="table">Data Table</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="charts" className="mt-4">
-              <ChartContainer data={filteredData} columns={csvData.columns} />
-            </TabsContent>
-
-            <TabsContent value="table" className="mt-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Raw Data</CardTitle>
-                </CardHeader>
-                <CardContent className="overflow-x-auto">
-                  <CsvTable
-                    data={filteredData}
-                    columns={csvData.columns}
-                    priorityColumn={priorityColumn}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
         </div>
+      </details>
+
+      {/* Main Content - Charts & Table */}
+      <div className="space-y-4 lg:space-y-6">
+        <Tabs defaultValue="charts" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="charts">Charts</TabsTrigger>
+            <TabsTrigger value="table">Data Table</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="charts" className="mt-4">
+            <ChartContainer data={filteredData} columns={csvData.columns} />
+          </TabsContent>
+
+          <TabsContent value="table" className="mt-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Raw Data</CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <CsvTable
+                  data={filteredData}
+                  columns={csvData.columns}
+                  priorityColumn={priorityColumn}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

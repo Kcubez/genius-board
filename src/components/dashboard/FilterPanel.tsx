@@ -134,7 +134,7 @@ export function FilterPanel({
       <CardContent className="space-y-4">
         {/* Add Filter */}
         <div className="space-y-2">
-          <Label>{t('filter.selectColumn')}</Label>
+          <Label className="text-sm font-medium">{t('filter.selectColumn')}</Label>
           <div className="flex gap-2">
             <Select value={selectedColumn ?? ''} onValueChange={setSelectedColumn}>
               <SelectTrigger className="flex-1">
@@ -153,8 +153,13 @@ export function FilterPanel({
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={handleAddFilter} disabled={!selectedColumn} size="icon">
+            <Button
+              onClick={handleAddFilter}
+              disabled={!selectedColumn}
+              className="gap-1.5 bg-primary hover:bg-primary/90 transition-all duration-200 shadow-sm hover:shadow-md"
+            >
               <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add</span>
             </Button>
           </div>
         </div>
