@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// For optional session-based data storage with auto-cleanup
+model UploadSession {
+  id        String   @id @default(cuid())
+  fileName  String
+  columns   Json     // Column metadata with types
+  data      Json     // CSV data as JSON
+  rowCount  Int      @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Auto-cleanup after this time
+
+  @@index([expiresAt])
+}
+
+// For saved dashboard configurations (Phase 2)
+model SavedDashboard {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  filters     Json     // Saved filter state
+  chartConfig Json     // Chart configurations
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

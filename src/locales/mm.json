@@ -1,0 +1,87 @@
+{
+  "common": {
+    "upload": "တင်ရန်",
+    "download": "ဒေါင်းလုပ်",
+    "export": "ထုတ်ယူရန်",
+    "filter": "စစ်ထုတ်ရန်",
+    "clear": "ရှင်းလင်းရန်",
+    "apply": "အသုံးပြုရန်",
+    "cancel": "ပယ်ဖျက်ရန်",
+    "save": "သိမ်းဆည်းရန်",
+    "loading": "ခဏစောင့်ပါ...",
+    "error": "အမှား",
+    "success": "အောင်မြင်ပါသည်",
+    "search": "ရှာဖွေရန်",
+    "noData": "ဒေတာ မရှိပါ",
+    "showing": "ပြသနေသည်",
+    "of": "မှ",
+    "rows": "အတန်း",
+    "columns": "ကော်လံ"
+  },
+  "upload": {
+    "title": "CSV ဖိုင် တင်ရန်",
+    "dragDrop": "သင့် CSV ဖိုင်ကို ဒီမှာ ဆွဲချလိုက်ပါ",
+    "or": "သို့မဟုတ်",
+    "browse": "ဖိုင် ရွေးရန်",
+    "supportedFormat": "ပံ့ပိုးသော ဖိုင်အမျိုးအစား: CSV (.csv)",
+    "maxSize": "အများဆုံး ဖိုင်အရွယ်အစား: 10MB",
+    "preview": "ကြိုတင်ကြည့်ရန်",
+    "analyzing": "ဖိုင်ကို စစ်ဆေးနေသည်...",
+    "ready": "ဖိုင် အသင့်ဖြစ်ပါပြီ"
+  },
+  "errors": {
+    "CSV_INVALID": "CSV ဖိုင် မမှန်ကန်ပါ",
+    "CSV_EMPTY": "ဖိုင်တွင် ဒေတာ မရှိပါ",
+    "NO_HEADER": "Header row မရှိပါ",
+    "PARSE_ERROR": "ဖိုင် ဖတ်ရန် မအောင်မြင်ပါ",
+    "FILE_TOO_LARGE": "ဖိုင် အရွယ်အစား ကြီးလွန်းပါသည်"
+  },
+  "dashboard": {
+    "title": "Sales Dashboard",
+    "kpi": {
+      "totalSales": "စုစုပေါင်း အရောင်း",
+      "totalOrders": "စုစုပေါင်း အော်ဒါ",
+      "totalQuantity": "စုစုပေါင်း အရေအတွက်",
+      "avgOrderValue": "ပျမ်းမျှ အော်ဒါတန်ဖိုး",
+      "uniqueCustomers": "ဖောက်သည် ဦးရေ"
+    },
+    "charts": {
+      "salesOverTime": "အချိန်အလိုက် အရောင်း",
+      "salesByProduct": "ထုတ်ကုန်အလိုက် အရောင်း",
+      "salesByCustomer": "ဖောက်သည်အလိုက် အရောင်း",
+      "revenueDistribution": "ဝင်ငွေ ခွဲဝေမှု"
+    }
+  },
+  "filter": {
+    "title": "စစ်ထုတ်ရန်",
+    "dateRange": "ရက်စွဲ အပိုင်းအခြား",
+    "from": "မှ",
+    "to": "ထိ",
+    "selectColumn": "ကော်လံ ရွေးပါ",
+    "contains": "ပါဝင်သည်",
+    "equals": "ညီမျှသည်",
+    "greaterThan": "ထက် ကြီးသည်",
+    "lessThan": "ထက် ငယ်သည်",
+    "between": "အကြား",
+    "min": "အနည်းဆုံး",
+    "max": "အများဆုံး",
+    "selectAll": "အားလုံး ရွေးရန်",
+    "clearFilters": "စစ်ထုတ်မှု အားလုံး ရှင်းရန်",
+    "activeFilters": "အသုံးပြုနေသော စစ်ထုတ်မှုများ"
+  },
+  "table": {
+    "search": "ဇယားထဲမှာ ရှာရန်...",
+    "sortAsc": "ငယ်စဉ် ကြီးလိုက်",
+    "sortDesc": "ကြီးစဉ် ငယ်လိုက်",
+    "noResults": "ရှာဖွေမှု ရလဒ် မရှိပါ",
+    "rowsPerPage": "စာမျက်နှာတစ်ခုလျှင် အတန်း",
+    "page": "စာမျက်နှာ",
+    "previous": "ယခင်",
+    "next": "နောက်တစ်ခု"
+  },
+  "language": {
+    "english": "English",
+    "myanmar": "မြန်မာ",
+    "switchTo": "သို့ ပြောင်းရန်"
+  }
+}

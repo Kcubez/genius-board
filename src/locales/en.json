@@ -1,0 +1,87 @@
+{
+  "common": {
+    "upload": "Upload",
+    "download": "Download",
+    "export": "Export",
+    "filter": "Filter",
+    "clear": "Clear",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "search": "Search",
+    "noData": "No data available",
+    "showing": "Showing",
+    "of": "of",
+    "rows": "rows",
+    "columns": "columns"
+  },
+  "upload": {
+    "title": "Upload CSV File",
+    "dragDrop": "Drag and drop your CSV file here",
+    "or": "or",
+    "browse": "Browse Files",
+    "supportedFormat": "Supported format: CSV (.csv)",
+    "maxSize": "Maximum file size: 10MB",
+    "preview": "Preview",
+    "analyzing": "Analyzing file...",
+    "ready": "File ready for analysis"
+  },
+  "errors": {
+    "CSV_INVALID": "Invalid CSV file",
+    "CSV_EMPTY": "File is empty",
+    "NO_HEADER": "Missing header row",
+    "PARSE_ERROR": "Failed to parse file",
+    "FILE_TOO_LARGE": "File is too large"
+  },
+  "dashboard": {
+    "title": "Sales Dashboard",
+    "kpi": {
+      "totalSales": "Total Sales",
+      "totalOrders": "Total Orders",
+      "totalQuantity": "Total Quantity",
+      "avgOrderValue": "Avg. Order Value",
+      "uniqueCustomers": "Unique Customers"
+    },
+    "charts": {
+      "salesOverTime": "Sales Over Time",
+      "salesByProduct": "Sales by Product",
+      "salesByCustomer": "Sales by Customer",
+      "revenueDistribution": "Revenue Distribution"
+    }
+  },
+  "filter": {
+    "title": "Filters",
+    "dateRange": "Date Range",
+    "from": "From",
+    "to": "To",
+    "selectColumn": "Select Column",
+    "contains": "Contains",
+    "equals": "Equals",
+    "greaterThan": "Greater Than",
+    "lessThan": "Less Than",
+    "between": "Between",
+    "min": "Min",
+    "max": "Max",
+    "selectAll": "Select All",
+    "clearFilters": "Clear All Filters",
+    "activeFilters": "Active Filters"
+  },
+  "table": {
+    "search": "Search in table...",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending",
+    "noResults": "No results found",
+    "rowsPerPage": "Rows per page",
+    "page": "Page",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "language": {
+    "english": "English",
+    "myanmar": "မြန်မာ",
+    "switchTo": "Switch to"
+  }
+}
