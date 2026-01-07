@@ -15,14 +15,14 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-lg bg-linear-to-r from-violet-500 to-purple-600 flex items-center justify-center">
             <LayoutDashboard className="h-5 w-5 text-white" />
           </div>
-          <span className="hidden sm:inline bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="hidden sm:inline bg-linear-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
             {t('dashboard.title')}
           </span>
         </Link>

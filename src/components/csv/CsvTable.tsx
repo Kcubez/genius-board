@@ -154,7 +154,7 @@ export function CsvTable({ data, columns, priorityColumn }: CsvTableProps) {
       {/* Table with horizontal scroll on mobile */}
       <div className="rounded-md border overflow-hidden">
         <div className="overflow-x-auto">
-          <Table className="min-w-[600px]">
+          <Table className="min-w-150">
             <TableHeader>
               {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id} className="bg-muted/50">

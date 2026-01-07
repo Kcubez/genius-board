@@ -46,7 +46,7 @@ export default function HomePage() {
     <div className="space-y-8">
       {/* Hero Section */}
       <section className="text-center space-y-4 py-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
           {t('dashboard.title')}
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -66,7 +66,7 @@ export default function HomePage() {
           <Button
             size="lg"
             onClick={() => router.push('/dashboard')}
-            className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+            className="gap-2 bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
           >
             Open Dashboard
             <ArrowRight className="h-4 w-4" />
@@ -102,7 +102,7 @@ export default function HomePage() {
             {features.map((feature, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <div className="mx-auto h-12 w-12 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center text-violet-600">
+                  <div className="mx-auto h-12 w-12 rounded-full bg-linear-to-r from-violet-500/20 to-purple-500/20 flex items-center justify-center text-violet-600">
                     {feature.icon}
                   </div>
                   <CardTitle className="text-lg">{feature.title}</CardTitle>

@@ -78,7 +78,7 @@ export function KpiCards({ kpiData, isLoading = false }: KpiCardsProps) {
           key={config.key}
           className={cn(
             'relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
-            'border-0 bg-gradient-to-br',
+            'border-0 bg-linear-to-r',
             config.gradient
           )}
         >

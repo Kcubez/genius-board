@@ -116,7 +116,7 @@ export function CsvUploader({ onUploadComplete }: CsvUploaderProps) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className="flex flex-col items-center justify-center text-center min-h-[200px]"
+          className="flex flex-col items-center justify-center text-center min-h-50"
         >
           {uploadState.isUploading ? (
             <div className="flex flex-col items-center gap-4">
@@ -170,7 +170,10 @@ export function CsvUploader({ onUploadComplete }: CsvUploaderProps) {
               <p className="text-sm text-muted-foreground mb-4">{t('upload.or')}</p>
               <label className="cursor-pointer">
                 <input type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
-                <Button asChild>
+                <Button
+                  asChild
+                  className="bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                >
                   <span>{t('upload.browse')}</span>
                 </Button>
               </label>

@@ -166,11 +166,21 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+          >
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">{t('common.export')}</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={handleReset} className="gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReset}
+            className="gap-2 border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors"
+          >
             <RefreshCw className="h-4 w-4" />
             <span className="hidden sm:inline">New File</span>
           </Button>

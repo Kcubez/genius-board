@@ -271,7 +271,7 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     />
-                    <span className="text-sm font-medium truncate max-w-[150px]">{item.name}</span>
+                    <span className="text-sm font-medium truncate max-w-37.5">{item.name}</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
                     {formatNumber(item.value, showCurrency ? 'currency' : 'number')}

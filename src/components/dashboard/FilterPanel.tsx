@@ -156,10 +156,10 @@ export function FilterPanel({
             <Button
               onClick={handleAddFilter}
               disabled={!selectedColumn}
-              className="gap-1.5 bg-primary hover:bg-primary/90 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="gap-2 bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add</span>
+              Add Filter
             </Button>
           </div>
         </div>
