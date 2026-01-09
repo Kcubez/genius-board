@@ -50,6 +50,7 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
   const { t } = useLanguage();
   const [groupByColumn, setGroupByColumn] = React.useState<string>('');
   const [valueColumn, setValueColumn] = React.useState<string>('');
+  const [reportType, setReportType] = React.useState<string>('custom');
 
   // Helper to detect if a column is likely a currency/money column
   const isCurrencyColumn = (columnName: string): boolean => {
@@ -68,6 +69,90 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
     return currencyHints.some(hint => lowerName.includes(hint));
   };
 
+  const textColumns = columns.filter(c => c.type === 'category' || c.type === 'text');
+  const numberColumns = columns.filter(c => c.type === 'number');
+  const dateColumn = columns.find(c => c.type === 'date');
+
+  // Generate report type presets based on available columns
+  const reportPresets = useMemo(() => {
+    const presets: { value: string; label: string; groupBy: string; valueCol: string }[] = [
+      { value: 'custom', label: 'Custom Report', groupBy: '', valueCol: '' },
+    ];
+
+    // Find common column patterns
+    const customerCol = textColumns.find(
+      c => c.name.toLowerCase().includes('customer') || c.name.toLowerCase().includes('client')
+    );
+    const productCol = textColumns.find(
+      c => c.name.toLowerCase().includes('product') || c.name.toLowerCase().includes('item')
+    );
+    const categoryCol = textColumns.find(
+      c => c.name.toLowerCase().includes('category') || c.name.toLowerCase().includes('type')
+    );
+    const amountCol = numberColumns.find(
+      c =>
+        c.name.toLowerCase().includes('amount') ||
+        c.name.toLowerCase().includes('total') ||
+        c.name.toLowerCase().includes('sales')
+    );
+    const quantityCol = numberColumns.find(
+      c => c.name.toLowerCase().includes('quantity') || c.name.toLowerCase().includes('qty')
+    );
+
+    if (customerCol && amountCol) {
+      presets.push({
+        value: 'sales-by-customer',
+        label: 'Sales by Customer',
+        groupBy: customerCol.name,
+        valueCol: amountCol.name,
+      });
+    }
+    if (customerCol && quantityCol) {
+      presets.push({
+        value: 'qty-by-customer',
+        label: 'Quantity by Customer',
+        groupBy: customerCol.name,
+        valueCol: quantityCol.name,
+      });
+    }
+    if (productCol && amountCol) {
+      presets.push({
+        value: 'sales-by-product',
+        label: 'Sales by Product',
+        groupBy: productCol.name,
+        valueCol: amountCol.name,
+      });
+    }
+    if (productCol && quantityCol) {
+      presets.push({
+        value: 'qty-by-product',
+        label: 'Quantity by Product',
+        groupBy: productCol.name,
+        valueCol: quantityCol.name,
+      });
+    }
+    if (categoryCol && amountCol) {
+      presets.push({
+        value: 'sales-by-category',
+        label: 'Sales by Category',
+        groupBy: categoryCol.name,
+        valueCol: amountCol.name,
+      });
+    }
+
+    return presets;
+  }, [textColumns, numberColumns]);
+
+  // Handle report type change
+  const handleReportTypeChange = (value: string) => {
+    setReportType(value);
+    const preset = reportPresets.find(p => p.value === value);
+    if (preset && preset.groupBy && preset.valueCol) {
+      setGroupByColumn(preset.groupBy);
+      setValueColumn(preset.valueCol);
+    }
+  };
+
   // Auto-select columns on first load
   React.useEffect(() => {
     const categoryCol = columns.find(c => c.type === 'category' || c.type === 'text');
@@ -82,7 +167,6 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
     return aggregateByColumn(data, groupByColumn, valueColumn, 'sum').slice(0, 10);
   }, [data, groupByColumn, valueColumn]);
 
-  const dateColumn = columns.find(c => c.type === 'date');
   const timeSeriesData = useMemo(() => {
     if (!dateColumn || !valueColumn || data.length === 0) return [];
 
@@ -94,8 +178,6 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
       }));
   }, [data, dateColumn, valueColumn]);
 
-  const textColumns = columns.filter(c => c.type === 'category' || c.type === 'text');
-  const numberColumns = columns.filter(c => c.type === 'number');
   const showCurrency = isCurrencyColumn(valueColumn);
 
   if (data.length === 0) {
@@ -104,38 +186,62 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      {/* Column Selectors */}
-      <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="text-sm font-medium whitespace-nowrap">Group by:</span>
-          <Select value={groupByColumn} onValueChange={setGroupByColumn}>
-            <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
-              <SelectValue placeholder="Select column" />
-            </SelectTrigger>
-            <SelectContent>
-              {textColumns.map(col => (
-                <SelectItem key={col.name} value={col.name}>
-                  {col.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="text-sm font-medium whitespace-nowrap">Value:</span>
-          <Select value={valueColumn} onValueChange={setValueColumn}>
-            <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
-              <SelectValue placeholder="Select column" />
-            </SelectTrigger>
-            <SelectContent>
-              {numberColumns.map(col => (
-                <SelectItem key={col.name} value={col.name}>
-                  {col.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Report Type & Column Selectors */}
+      <div className="flex flex-col gap-3">
+        {/* Report Type Presets */}
+        {reportPresets.length > 1 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium whitespace-nowrap">📊 Report Type:</span>
+            <Select value={reportType} onValueChange={handleReportTypeChange}>
+              <SelectTrigger className="w-full sm:w-64 bg-linear-to-r from-violet-50 to-purple-50 border-violet-200">
+                <SelectValue placeholder="Select report type" />
+              </SelectTrigger>
+              <SelectContent>
+                {reportPresets.map(preset => (
+                  <SelectItem key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Custom Column Selectors - only show for Custom Report */}
+        {reportType === 'custom' && (
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-sm font-medium whitespace-nowrap">Group by:</span>
+              <Select value={groupByColumn} onValueChange={setGroupByColumn}>
+                <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  {textColumns.map(col => (
+                    <SelectItem key={col.name} value={col.name}>
+                      {col.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-sm font-medium whitespace-nowrap">Value:</span>
+              <Select value={valueColumn} onValueChange={setValueColumn}>
+                <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  {numberColumns.map(col => (
+                    <SelectItem key={col.name} value={col.name}>
+                      {col.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Charts Grid - stacks on mobile */}

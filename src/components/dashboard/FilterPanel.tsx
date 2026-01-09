@@ -55,6 +55,12 @@ export function FilterPanel({
 
   const activeFilters = useMemo(() => filters.filter(f => f.isActive), [filters]);
 
+  // Filter out columns that already have filters applied
+  const availableColumns = useMemo(() => {
+    const filteredColumnNames = filters.map(f => f.columnName);
+    return columns.filter(col => !filteredColumnNames.includes(col.name));
+  }, [columns, filters]);
+
   const handleAddFilter = useCallback(() => {
     if (!selectedColumn) return;
 
@@ -141,21 +147,27 @@ export function FilterPanel({
                 <SelectValue placeholder={t('filter.selectColumn')} />
               </SelectTrigger>
               <SelectContent>
-                {columns.map(col => (
-                  <SelectItem key={col.name} value={col.name}>
-                    <span className="flex items-center gap-2">
-                      {col.name}
-                      <Badge variant="outline" className="text-xs">
-                        {col.type}
-                      </Badge>
-                    </span>
-                  </SelectItem>
-                ))}
+                {availableColumns.length === 0 ? (
+                  <div className="p-2 text-sm text-muted-foreground text-center">
+                    All columns have filters
+                  </div>
+                ) : (
+                  availableColumns.map(col => (
+                    <SelectItem key={col.name} value={col.name}>
+                      <span className="flex items-center gap-2">
+                        {col.name}
+                        <Badge variant="outline" className="text-xs">
+                          {col.type}
+                        </Badge>
+                      </span>
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             <Button
               onClick={handleAddFilter}
-              disabled={!selectedColumn}
+              disabled={!selectedColumn || availableColumns.length === 0}
               className="gap-2 bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="h-4 w-4" />
