@@ -287,19 +287,26 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">
-              {valueColumn} by {groupByColumn}
+              Top 10 {groupByColumn} by {valueColumn}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <RechartsBarChart data={chartData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <ResponsiveContainer width="100%" height={Math.max(280, chartData.length * 40)}>
+              <RechartsBarChart data={chartData} layout="vertical" margin={{ left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
                 <XAxis
                   type="number"
                   className="text-xs"
                   tickFormatter={v => formatNumber(v, 'number')}
                 />
-                <YAxis dataKey="name" type="category" className="text-xs" width={100} />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  className="text-xs"
+                  width={120}
+                  interval={0}
+                  tick={{ fontSize: 12 }}
+                />
                 <Tooltip
                   formatter={value => [
                     formatNumber(Number(value) || 0, showCurrency ? 'currency' : 'number') +
@@ -324,13 +331,13 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
         {/* Pie Chart */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t('dashboard.charts.revenueDistribution')}</CardTitle>
+            <CardTitle className="text-base">Top 10 Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <RechartsPieChart>
                 <Pie
-                  data={chartData.slice(0, 6)}
+                  data={chartData.slice(0, 10)}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -340,7 +347,7 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
                   label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
                   labelLine={false}
                 >
-                  {chartData.slice(0, 6).map((_, index) => (
+                  {chartData.slice(0, 10).map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -363,11 +370,11 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
         {/* Summary Table */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Top {groupByColumn}</CardTitle>
+            <CardTitle className="text-base">Top 10 {groupByColumn}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {chartData.slice(0, 8).map((item, index) => (
+              {chartData.slice(0, 10).map((item, index) => (
                 <div
                   key={item.name}
                   className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors"

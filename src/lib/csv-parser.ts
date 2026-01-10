@@ -64,19 +64,146 @@ function getNumberRange(values: (string | null | undefined)[]): { min: number; m
   };
 }
 
-// Parse CSV file and return structured data
-export function parseCsv(file: File): Promise<CsvParseResult> {
+// Parse Excel file and return structured data
+function parseExcel(file: File): Promise<CsvParseResult> {
   return new Promise(resolve => {
-    // Check file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
+    const reader = new FileReader();
+
+    reader.onload = async e => {
+      try {
+        // Dynamic import to avoid SSR issues
+        const XLSX = await import('xlsx');
+
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+
+        // Get the first sheet
+        const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) {
+          resolve({
+            success: false,
+            error: 'Excel file has no sheets',
+            errorCode: 'CSV_EMPTY',
+          });
+          return;
+        }
+
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+          header: 1,
+          defval: '',
+        }) as unknown as unknown[][];
+
+        if (jsonData.length < 2) {
+          resolve({
+            success: false,
+            error: 'Excel file must have a header row and at least one data row',
+            errorCode: 'CSV_EMPTY',
+          });
+          return;
+        }
+
+        // First row is headers
+        const headers = (jsonData[0] as unknown[])
+          .map(h => String(h || '').trim())
+          .filter(h => h !== '');
+        const rows = jsonData
+          .slice(1)
+          .map(row => {
+            const rowData: Record<string, string> = {};
+            headers.forEach((header, i) => {
+              const value = (row as unknown[])[i];
+              if (value instanceof Date) {
+                rowData[header] = value.toISOString().split('T')[0];
+              } else {
+                rowData[header] = value !== null && value !== undefined ? String(value) : '';
+              }
+            });
+            return rowData;
+          })
+          .filter(row => Object.values(row).some(v => v !== ''));
+
+        // Build column info using the same logic as CSV
+        const columns: ColumnInfo[] = headers.map(header => {
+          const values = rows.map(row => row[header]);
+          const type = detectColumnType(values);
+
+          const columnInfo: ColumnInfo = {
+            name: header,
+            type,
+            sampleValues: values.slice(0, 5).filter(v => v !== null && v !== undefined) as string[],
+          };
+
+          if (type === 'category') {
+            columnInfo.uniqueValues = getUniqueValues(values);
+          }
+
+          if (type === 'number') {
+            const range = getNumberRange(values);
+            columnInfo.min = range.min;
+            columnInfo.max = range.max;
+          }
+
+          return columnInfo;
+        });
+
+        // Convert rows with proper types
+        const typedRows = rows.map(row => {
+          const typedRow: Record<string, string | number | Date | null> = {};
+
+          columns.forEach(col => {
+            const value = row[col.name];
+
+            if (value === null || value === undefined || value === '') {
+              typedRow[col.name] = null;
+            } else if (col.type === 'number') {
+              typedRow[col.name] = parseFloat(String(value).replace(/[,$]/g, ''));
+            } else if (col.type === 'date') {
+              typedRow[col.name] = new Date(value);
+            } else {
+              typedRow[col.name] = value;
+            }
+          });
+
+          return typedRow;
+        });
+
+        const csvData: CsvData = {
+          columns,
+          rows: typedRows,
+          rawHeaders: headers,
+          fileName: file.name,
+          totalRows: typedRows.length,
+        };
+
+        resolve({
+          success: true,
+          data: csvData,
+        });
+      } catch (error) {
+        resolve({
+          success: false,
+          error: 'Failed to parse Excel file',
+          errorCode: 'PARSE_ERROR',
+        });
+      }
+    };
+
+    reader.onerror = () => {
       resolve({
         success: false,
-        error: 'File size exceeds 10MB limit',
-        errorCode: 'FILE_TOO_LARGE',
+        error: 'Failed to read file',
+        errorCode: 'PARSE_ERROR',
       });
-      return;
-    }
+    };
 
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// Parse CSV file and return structured data
+function parseCsvFile(file: File): Promise<CsvParseResult> {
+  return new Promise(resolve => {
     Papa.parse<Record<string, string>>(file, {
       header: true,
       skipEmptyLines: true,
@@ -180,6 +307,33 @@ export function parseCsv(file: File): Promise<CsvParseResult> {
       },
     });
   });
+}
+
+// Main parser function - handles both CSV and Excel
+export function parseCsv(file: File): Promise<CsvParseResult> {
+  // Check file size (10MB limit)
+  if (file.size > 10 * 1024 * 1024) {
+    return Promise.resolve({
+      success: false,
+      error: 'File size exceeds 10MB limit',
+      errorCode: 'FILE_TOO_LARGE',
+    });
+  }
+
+  const fileName = file.name.toLowerCase();
+
+  // Check file extension and parse accordingly
+  if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+    return parseExcel(file);
+  } else if (fileName.endsWith('.csv')) {
+    return parseCsvFile(file);
+  } else {
+    return Promise.resolve({
+      success: false,
+      error: 'Unsupported file format. Please upload a CSV or Excel file.',
+      errorCode: 'CSV_INVALID',
+    });
+  }
 }
 
 // Convert filtered data back to CSV for export

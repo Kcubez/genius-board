@@ -6,26 +6,61 @@ datasource db {
   provider = "postgresql"
 }
 
-// For optional session-based data storage with auto-cleanup
-model UploadSession {
-  id        String   @id @default(cuid())
-  fileName  String
-  columns   Json     // Column metadata with types
-  data      Json     // CSV data as JSON
-  rowCount  Int      @default(0)
-  createdAt DateTime @default(now())
-  expiresAt DateTime // Auto-cleanup after this time
-
-  @@index([expiresAt])
-}
-
-// For saved dashboard configurations (Phase 2)
+// Existing: Saved dashboard configurations
 model SavedDashboard {
   id          String   @id @default(cuid())
   name        String
   description String?
-  filters     Json     // Saved filter state
-  chartConfig Json     // Chart configurations
+  datasetId   String?  // Link to a specific dataset
+  filters     Json
+  chartConfig Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Existing: Temporary upload sessions (legacy)
+model UploadSession {
+  id        String   @id
+  fileName  String
+  columns   Json
+  data      Json
+  rowCount  Int      @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+// NEW: Dataset - represents an uploaded CSV/Excel file
+model Dataset {
+  id          String    @id @default(cuid())
+  userId      String    // Supabase Auth user ID
+  name        String    // User-friendly name like "January Sales 2024"
+  fileName    String    // Original file name "sales-jan.csv"
+  columns     Json      // Column metadata: [{"name":"Date","type":"date"}, ...]
+  rowCount    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relation to data rows
+  rows        DataRow[]
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// NEW: DataRow - individual rows of data (stored as JSONB)
+model DataRow {
+  id          String    @id @default(cuid())
+  datasetId   String
+  rowIndex    Int       // For ordering rows
+  data        Json      // Row data: {"Date":"2024-01-01","Customer":"Aung","Amount":5000}
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relation to dataset
+  dataset     Dataset   @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  
+  @@index([datasetId])
+  @@index([datasetId, rowIndex])
 }

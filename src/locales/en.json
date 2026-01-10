@@ -19,18 +19,18 @@
     "columns": "columns"
   },
   "upload": {
-    "title": "Upload CSV File",
-    "dragDrop": "Drag and drop your CSV file here",
+    "title": "Upload Data File",
+    "dragDrop": "Drag and drop your CSV or Excel file here",
     "or": "or",
     "browse": "Browse Files",
-    "supportedFormat": "Supported format: CSV (.csv)",
+    "supportedFormat": "Supported formats: CSV, Excel (.csv, .xlsx, .xls)",
     "maxSize": "Maximum file size: 10MB",
     "preview": "Preview",
     "analyzing": "Analyzing file...",
     "ready": "File ready for analysis"
   },
   "errors": {
-    "CSV_INVALID": "Invalid CSV file",
+    "CSV_INVALID": "Invalid file format. Please upload CSV or Excel file",
     "CSV_EMPTY": "File is empty",
     "NO_HEADER": "Missing header row",
     "PARSE_ERROR": "Failed to parse file",

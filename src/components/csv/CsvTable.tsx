@@ -79,8 +79,28 @@ export function CsvTable({ data, columns, priorityColumn }: CsvTableProps) {
           return <span className="text-muted-foreground">—</span>;
         }
 
+        // Format date columns
+        if (col.type === 'date') {
+          try {
+            const date = value instanceof Date ? value : new Date(String(value));
+            if (!isNaN(date.getTime())) {
+              return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              });
+            }
+          } catch {
+            return String(value);
+          }
+        }
+
         if (value instanceof Date) {
-          return value.toLocaleDateString();
+          return value.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          });
         }
 
         if (col.type === 'number' && typeof value === 'number') {

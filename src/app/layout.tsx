@@ -4,6 +4,7 @@ import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { CsvProvider } from '@/context/CsvContext';
 import { FilterProvider } from '@/context/FilterContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -34,14 +35,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
       >
-        <LanguageProvider>
-          <CsvProvider>
-            <FilterProvider>
-              <Header />
-              <main className="container py-6">{children}</main>
-            </FilterProvider>
-          </CsvProvider>
-        </LanguageProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <CsvProvider>
+              <FilterProvider>{children}</FilterProvider>
+            </CsvProvider>
+          </LanguageProvider>
+        </AuthProvider>
         <Toaster position="top-right" />
       </body>
     </html>

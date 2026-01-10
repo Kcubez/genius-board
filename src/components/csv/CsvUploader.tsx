@@ -34,7 +34,11 @@ export function CsvUploader({ onUploadComplete }: CsvUploaderProps) {
   const processFile = useCallback(
     async (file: File) => {
       // Validate file type
-      if (!file.name.endsWith('.csv')) {
+      const fileName = file.name.toLowerCase();
+      const isValidFile =
+        fileName.endsWith('.csv') || fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+
+      if (!isValidFile) {
         setUploadState({
           error: t('errors.CSV_INVALID'),
           isUploading: false,
@@ -169,7 +173,12 @@ export function CsvUploader({ onUploadComplete }: CsvUploaderProps) {
               <p className="text-muted-foreground mb-4">{t('upload.dragDrop')}</p>
               <p className="text-sm text-muted-foreground mb-4">{t('upload.or')}</p>
               <label className="cursor-pointer">
-                <input type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
                 <Button
                   asChild
                   className="bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-sm hover:shadow-md transition-all duration-200"
