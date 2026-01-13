@@ -2,6 +2,17 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Skip auth check for paths that don't need it (performance optimization)
+  const skipAuthPaths = ['/', '/login', '/api/'];
+  const isStaticAsset = pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|woff|woff2)$/);
+
+  // For root path and static assets, just continue without auth check
+  if (pathname === '/' || isStaticAsset) {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -27,27 +38,31 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Protected routes
+  // Protected routes that require authentication
   const protectedPaths = ['/dashboard'];
-  const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path));
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+  const isLoginPath = pathname === '/login';
 
-  // Redirect to login if not authenticated on protected routes
-  if (isProtectedPath && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
-  }
+  // Only check auth if we're on a protected path or login page
+  if (isProtectedPath || isLoginPath) {
+    // Refresh session if expired
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  // Redirect to dashboard if already logged in and trying to access login
-  if (request.nextUrl.pathname === '/login' && user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
+    // Redirect to login if not authenticated on protected routes
+    if (isProtectedPath && !user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
+
+    // Redirect to dashboard if already logged in and trying to access login
+    if (isLoginPath && user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

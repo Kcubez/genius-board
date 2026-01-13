@@ -43,7 +43,10 @@
       "totalOrders": "Total Orders",
       "totalQuantity": "Total Quantity",
       "avgOrderValue": "Avg. Order Value",
-      "uniqueCustomers": "Unique Customers"
+      "uniqueCustomers": "Unique Customers",
+      "totalCost": "Total Cost",
+      "totalProfit": "Total Profit",
+      "profitMargin": "Profit Margin"
     },
     "charts": {
       "salesOverTime": "Sales Over Time",

@@ -43,7 +43,10 @@
       "totalOrders": "စုစုပေါင်း အော်ဒါ",
       "totalQuantity": "စုစုပေါင်း အရေအတွက်",
       "avgOrderValue": "ပျမ်းမျှ အော်ဒါတန်ဖိုး",
-      "uniqueCustomers": "ဖောက်သည် ဦးရေ"
+      "uniqueCustomers": "ဖောက်သည် ဦးရေ",
+      "totalCost": "စုစုပေါင်း ကုန်ကျစရိတ်",
+      "totalProfit": "စုစုပေါင်း အမြတ်",
+      "profitMargin": "အမြတ် ရာခိုင်နှုန်း"
     },
     "charts": {
       "salesOverTime": "အချိန်အလိုက် အရောင်း",

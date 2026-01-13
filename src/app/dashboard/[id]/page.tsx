@@ -93,27 +93,36 @@ export default function DatasetDashboardPage() {
     }
   }, [datasetId]);
 
+  // Create a structure that keeps row IDs with their data for efficient filtering
+  const rowsWithIds = useMemo(() => {
+    if (!dataset) return [];
+    return dataset.rows.map(row => ({
+      id: row.id,
+      data: row.data as Record<string, string | number | Date | null>,
+    }));
+  }, [dataset]);
+
   // Convert dataset rows to CSV data format
   const csvData: CsvData | null = useMemo(() => {
     if (!dataset) return null;
 
     return {
       columns: dataset.columns,
-      rows: dataset.rows.map(row => row.data as Record<string, string | number | Date | null>),
+      rows: rowsWithIds.map(r => r.data),
       rawHeaders: dataset.columns.map(c => c.name),
       fileName: dataset.fileName,
       totalRows: dataset.rowCount,
     };
-  }, [dataset]);
+  }, [dataset, rowsWithIds]);
 
-  // Apply filters to get filtered data
-  const filteredData = useMemo(() => {
-    if (!csvData) return [];
+  // Apply filters to get filtered rows (keeping IDs attached) - O(n) complexity
+  const filteredRowsWithIds = useMemo(() => {
+    if (!rowsWithIds.length) return [];
 
     const activeFilters = filters.filter(f => f.isActive);
-    if (activeFilters.length === 0) return csvData.rows;
+    if (activeFilters.length === 0) return rowsWithIds;
 
-    return csvData.rows.filter(row => {
+    return rowsWithIds.filter(({ data: row }) => {
       return activeFilters.every(filter => {
         const value = row[filter.columnName];
 
@@ -176,7 +185,12 @@ export default function DatasetDashboardPage() {
         }
       });
     });
-  }, [csvData, filters]);
+  }, [rowsWithIds, filters]);
+
+  // Extract just the data for components that need it
+  const filteredData = useMemo(() => {
+    return filteredRowsWithIds.map(r => r.data);
+  }, [filteredRowsWithIds]);
 
   // Calculate KPIs
   const kpiData = useMemo(() => {
@@ -185,6 +199,11 @@ export default function DatasetDashboardPage() {
     const kpiColumns = detectKpiColumns(csvData.columns);
     return calculateKpis(filteredData, kpiColumns);
   }, [csvData, filteredData]);
+
+  // Get filtered row IDs - now O(1) since IDs are already attached!
+  const filteredRowIds = useMemo(() => {
+    return filteredRowsWithIds.map(r => r.id);
+  }, [filteredRowsWithIds]);
 
   // Export handler
   const handleExport = useCallback(() => {
@@ -333,10 +352,10 @@ export default function DatasetDashboardPage() {
             </CardHeader>
             <CardContent>
               <EditableTable
-                data={csvData.rows}
+                data={filteredData}
                 columns={csvData.columns}
                 datasetId={datasetId}
-                rowIds={dataset.rows.map(r => r.id)}
+                rowIds={filteredRowIds}
                 onDataChange={refreshData}
               />
             </CardContent>

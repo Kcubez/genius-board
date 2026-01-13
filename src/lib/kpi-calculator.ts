@@ -8,6 +8,7 @@ export function detectKpiColumns(columns: ColumnInfo[]): KpiConfig {
     quantityColumn: null,
     customerColumn: null,
     dateColumn: null,
+    costColumn: null,
   };
 
   const findColumn = (hints: readonly string[], type?: ColumnInfo['type']): string | null => {
@@ -26,11 +27,11 @@ export function detectKpiColumns(columns: ColumnInfo[]): KpiConfig {
   // Find quantity column (must be number)
   config.quantityColumn = findColumn(KPI_COLUMN_HINTS.quantity, 'number');
 
-  // Find customer column (text or category)
-  config.customerColumn =
-    findColumn(KPI_COLUMN_HINTS.customer) ||
-    columns.find(col => col.type === 'category' || col.type === 'text')?.name ||
-    null;
+  // Find customer column (only if it matches customer hints - no fallback!)
+  config.customerColumn = findColumn(KPI_COLUMN_HINTS.customer);
+
+  // Find cost column (must be number) - for profit/loss calculation
+  config.costColumn = findColumn(KPI_COLUMN_HINTS.cost, 'number');
 
   // Find date column
   config.dateColumn =
@@ -57,6 +58,10 @@ export function calculateKpis(
     totalQuantity: 0,
     averageOrderValue: 0,
     uniqueCustomers: 0,
+    // Profit/Loss KPIs
+    totalCost: 0,
+    totalProfit: 0,
+    profitMargin: 0,
   };
 
   if (data.length === 0) return kpis;
@@ -91,6 +96,22 @@ export function calculateKpis(
         .map(v => String(v))
     );
     kpis.uniqueCustomers = uniqueCustomers.size;
+  }
+
+  // Calculate Cost and Profit/Loss (only if cost column exists)
+  if (config.costColumn) {
+    kpis.totalCost = data.reduce((sum, row) => {
+      const value = row[config.costColumn!];
+      return sum + (typeof value === 'number' ? value : 0);
+    }, 0);
+
+    // Calculate Profit = Sales - Cost
+    kpis.totalProfit = kpis.totalSales - kpis.totalCost;
+
+    // Calculate Profit Margin = (Profit / Sales) * 100
+    if (kpis.totalSales > 0) {
+      kpis.profitMargin = (kpis.totalProfit / kpis.totalSales) * 100;
+    }
   }
 
   return kpis;

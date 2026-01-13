@@ -41,6 +41,120 @@ const COLORS = [
   '#f97316',
 ];
 
+// Custom Premium Tooltip Component
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value?: number;
+    name?: string;
+    color?: string;
+    payload?: {
+      name?: string;
+      fill?: string;
+      percent?: number;
+    };
+  }>;
+  label?: string;
+  valueLabel?: string;
+  showCurrency?: boolean;
+  accentColor?: string;
+}
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+  valueLabel,
+  showCurrency,
+  accentColor,
+}: CustomTooltipProps) => {
+  if (!active || !payload || !payload.length) return null;
+
+  const value = payload[0]?.value as number;
+  const name = payload[0]?.payload?.name || label;
+  const color = accentColor || payload[0]?.payload?.fill || payload[0]?.color || '#8b5cf6';
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-white/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl shadow-black/10 dark:shadow-black/30 animate-in fade-in-0 zoom-in-95 duration-200">
+      {/* Gradient accent bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-1 opacity-80"
+        style={{ background: `linear-gradient(90deg, ${color}, ${color}80)` }}
+      />
+
+      <div className="px-4 py-3 space-y-2">
+        {/* Label / Name */}
+        <div className="flex items-center gap-2">
+          <div
+            className="w-3 h-3 rounded-full ring-2 ring-white shadow-sm"
+            style={{ backgroundColor: color }}
+          />
+          <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{name}</span>
+        </div>
+
+        {/* Value */}
+        <div className="flex items-baseline justify-between gap-4">
+          <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            {valueLabel || 'Value'}
+          </span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100 tabular-nums">
+            {formatNumber(value || 0, showCurrency ? 'currency' : 'number')}
+            {showCurrency && <span className="text-sm font-medium text-gray-500 ml-1">Ks</span>}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Pie Chart specific tooltip
+const PieTooltip = ({ active, payload, valueLabel, showCurrency }: CustomTooltipProps) => {
+  if (!active || !payload || !payload.length) return null;
+
+  const data = payload[0];
+  const value = data?.value as number;
+  const name = data?.name || data?.payload?.name;
+  const color = data?.payload?.fill || '#8b5cf6';
+  const percent = data?.payload?.percent;
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-white/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl shadow-black/10 dark:shadow-black/30 animate-in fade-in-0 zoom-in-95 duration-200">
+      {/* Gradient accent bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-1 opacity-80"
+        style={{ background: `linear-gradient(90deg, ${color}, ${color}80)` }}
+      />
+
+      <div className="px-4 py-3 space-y-2">
+        {/* Label / Name */}
+        <div className="flex items-center gap-2">
+          <div
+            className="w-3 h-3 rounded-full ring-2 ring-white shadow-sm"
+            style={{ backgroundColor: color }}
+          />
+          <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{name}</span>
+          {percent !== undefined && (
+            <span className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+              {(percent * 100).toFixed(1)}%
+            </span>
+          )}
+        </div>
+
+        {/* Value */}
+        <div className="flex items-baseline justify-between gap-4">
+          <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            {valueLabel || 'Value'}
+          </span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100 tabular-nums">
+            {formatNumber(value || 0, showCurrency ? 'currency' : 'number')}
+            {showCurrency && <span className="text-sm font-medium text-gray-500 ml-1">Ks</span>}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface ChartContainerProps {
   data: Record<string, string | number | Date | null>[];
   columns: ColumnInfo[];
@@ -259,15 +373,14 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
                   <XAxis dataKey="name" className="text-xs" />
                   <YAxis className="text-xs" tickFormatter={v => formatNumber(v, 'number')} />
                   <Tooltip
-                    formatter={value => [
-                      formatNumber(Number(value) || 0, showCurrency ? 'currency' : 'number') +
-                        (showCurrency ? ' Ks' : ''),
-                      valueColumn,
-                    ]}
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                    }}
+                    content={
+                      <CustomTooltip
+                        valueLabel={valueColumn}
+                        showCurrency={showCurrency}
+                        accentColor="#8b5cf6"
+                      />
+                    }
+                    cursor={{ stroke: '#8b5cf6', strokeWidth: 2, strokeOpacity: 0.3 }}
                   />
                   <Line
                     type="monotone"
@@ -308,15 +421,8 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
                   tick={{ fontSize: 12 }}
                 />
                 <Tooltip
-                  formatter={value => [
-                    formatNumber(Number(value) || 0, showCurrency ? 'currency' : 'number') +
-                      (showCurrency ? ' Ks' : ''),
-                    valueColumn,
-                  ]}
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                  }}
+                  content={<CustomTooltip valueLabel={valueColumn} showCurrency={showCurrency} />}
+                  cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }}
                 />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                   {chartData.map((_, index) => (
@@ -352,15 +458,7 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={value => [
-                    formatNumber(Number(value) || 0, showCurrency ? 'currency' : 'number') +
-                      (showCurrency ? ' Ks' : ''),
-                    valueColumn,
-                  ]}
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                  }}
+                  content={<PieTooltip valueLabel={valueColumn} showCurrency={showCurrency} />}
                 />
               </RechartsPieChart>
             </ResponsiveContainer>
