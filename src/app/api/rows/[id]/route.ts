@@ -1,17 +1,33 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { verifyUserSession } from '@/lib/user-auth';
 
 type JsonValue = Prisma.InputJsonValue;
+
+// Helper to check if user owns the row's dataset
+async function verifyRowOwnership(rowId: string, userId: string) {
+  const row = await prisma.dataRow.findUnique({
+    where: { id: rowId },
+    include: { dataset: { select: { userId: true } } },
+  });
+
+  if (!row || row.dataset.userId !== userId) {
+    return null;
+  }
+  return row;
+}
 
 // GET single row
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const session = await verifyUserSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const row = await prisma.dataRow.findUnique({
-      where: { id },
-    });
+    const { id } = await params;
+    const row = await verifyRowOwnership(id, session.userId);
 
     if (!row) {
       return NextResponse.json({ success: false, error: 'Row not found' }, { status: 404 });
@@ -27,9 +43,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 // PATCH update row data
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
-    const body = await request.json();
+    const session = await verifyUserSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
+    const { id } = await params;
+
+    // Verify ownership
+    const existing = await verifyRowOwnership(id, session.userId);
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Row not found' }, { status: 404 });
+    }
+
+    const body = await request.json();
     const row = await prisma.dataRow.update({
       where: { id },
       data: { data: body.data as JsonValue },
@@ -45,14 +72,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 // DELETE row
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await verifyUserSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
 
-    // Get row to find datasetId
-    const row = await prisma.dataRow.findUnique({
-      where: { id },
-      select: { datasetId: true },
-    });
-
+    // Verify ownership
+    const row = await verifyRowOwnership(id, session.userId);
     if (!row) {
       return NextResponse.json({ success: false, error: 'Row not found' }, { status: 404 });
     }

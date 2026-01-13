@@ -1,24 +1,21 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { createClient } from '@/lib/supabase/server';
+import { verifyUserSession } from '@/lib/user-auth';
 
 type JsonValue = Prisma.InputJsonValue;
 
 // GET all datasets for current user
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const session = await verifyUserSession();
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const datasets = await prisma.dataset.findMany({
-      where: { userId: user.id },
+      where: { userId: session.userId },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -42,12 +39,9 @@ export async function GET() {
 // POST create new dataset with rows
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const session = await verifyUserSession();
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -66,7 +60,7 @@ export async function POST(request: Request) {
     // Create dataset with userId
     const dataset = await prisma.dataset.create({
       data: {
-        userId: user.id,
+        userId: session.userId,
         name,
         fileName,
         columns,

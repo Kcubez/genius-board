@@ -1,23 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createClient } from '@/lib/supabase/server';
+import { verifyUserSession } from '@/lib/user-auth';
 
 // GET dataset with all rows (only if user owns it)
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const session = await verifyUserSession();
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
 
     const dataset = await prisma.dataset.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: session.userId },
       include: {
         rows: {
           orderBy: { rowIndex: 'asc' },
@@ -39,12 +36,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 // DELETE dataset and all its rows (only if user owns it)
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const session = await verifyUserSession();
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -52,7 +46,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     // Verify ownership before deleting
     const dataset = await prisma.dataset.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: session.userId },
     });
 
     if (!dataset) {
@@ -76,12 +70,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 // PATCH update dataset name (only if user owns it)
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const session = await verifyUserSession();
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -90,7 +81,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     // Verify ownership before updating
     const existing = await prisma.dataset.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: session.userId },
     });
 
     if (!existing) {

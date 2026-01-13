@@ -42,7 +42,7 @@ export default function RootLayout({
             </CsvProvider>
           </LanguageProvider>
         </AuthProvider>
-        <Toaster position="top-right" />
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

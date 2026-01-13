@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { verifyUserSession } from '@/lib/user-auth';
 
 type JsonValue = Prisma.InputJsonValue;
 
 // POST create new row in a dataset
 export async function POST(request: Request) {
   try {
+    const session = await verifyUserSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { datasetId, data } = body;
 
@@ -15,6 +21,15 @@ export async function POST(request: Request) {
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // Verify user owns this dataset
+    const dataset = await prisma.dataset.findFirst({
+      where: { id: datasetId, userId: session.userId },
+    });
+
+    if (!dataset) {
+      return NextResponse.json({ success: false, error: 'Dataset not found' }, { status: 404 });
     }
 
     // Get the max row index for this dataset

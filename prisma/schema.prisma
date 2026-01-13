@@ -6,6 +6,23 @@ datasource db {
   provider = "postgresql"
 }
 
+// User profile
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String    // Hashed password
+  name          String?
+  isAdmin       Boolean   @default(false)  // Only one admin account
+  isActive      Boolean   @default(true)
+  startDate     DateTime?  // Account start date (null = immediately active)
+  endDate       DateTime?  // Account end date (null = no expiry)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([isAdmin])
+}
+
 // Existing: Saved dashboard configurations
 model SavedDashboard {
   id          String   @id @default(cuid())
@@ -64,3 +81,4 @@ model DataRow {
   @@index([datasetId])
   @@index([datasetId, rowIndex])
 }
+

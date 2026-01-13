@@ -58,13 +58,14 @@ export function Header() {
                 <Button variant="outline" size="sm" className="gap-2">
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline max-w-37.5 truncate">
-                    {user.email?.split('@')[0]}
+                    {user.name || user.email?.split('@')[0]}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user.email}</p>
+                  <p className="text-sm font-medium">{user.name || 'User'}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
