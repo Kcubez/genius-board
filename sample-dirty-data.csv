@@ -1,0 +1,32 @@
+Date,Customer,Product,Quantity,Unit Price,Total,Region
+2024-01-15,John Smith,Laptop,2,999.99,1999.98,North
+2024-01-15,John Smith,Laptop,2,999.99,1999.98,North
+2024-01-16,  Mary Johnson  ,Phone,1,699.00,699.00,south
+2024-01-16,Mary Johnson,phone,3,699.00,2097.00,South
+2024-01-17,Bob Wilson,Tablet,,449.99,,East
+2024-01-18,Alice Brown,Laptop,1,999.99,999.99,WEST
+2024-01-18,alice brown,LAPTOP,2,999.99,1999.98,west
+2024-01-19,,Headphones,5,149.99,749.95,North
+2024-01-20,Charlie Davis,Monitor,2,299.99,599.98,  East  
+2024-01-20,Charlie Davis,Monitor,2,299.99,599.98,East
+2024-01-21,Diana Evans,Keyboard,10,79.99,799.90,
+2024-01-22,Edward Frank,   Mouse   ,15,29.99,449.85,South
+2024-01-23,Fiona Green,Phone,1,699.00,699.00,NORTH
+2024-01-23,FIONA GREEN,Phone,1,699.00,699.00,north
+2024-01-24,George Hill,Tablet,3,449.99,1349.97,West
+2024-01-25,Helen Ivy,Laptop,,999.99,,South
+2024-01-26,Ivan Jones,Monitor,1,299.99,299.99,East
+2024-01-27,  Julia King  ,Keyboard,5,79.99,399.95,North
+2024-01-28,Kevin Lee,Mouse,20,29.99,599.80,
+2024-01-29,Laura Miller,headphones,8,149.99,1199.92,West
+2024-01-30,Mike Nelson,HEADPHONES,2,149.99,299.98,WEST
+,,,,,,
+2024-02-01,Nancy Owen,Phone,2,699.00,1398.00,South
+2024-02-02,Oscar Price,Tablet,1,449.99,449.99,East
+2024-02-03,  Penny Quinn,Laptop,1,999.99,999.99,north
+2024-02-04,Quinn Reed,Monitor,3,299.99,899.97,West
+2024-02-05,Rachel Stone,,4,79.99,319.96,South
+2024-02-06,Sam Turner,Mouse,10,29.99,299.90,EAST
+2024-02-07,Tina Upton,Phone,1,699.00,699.00,North
+2024-02-08,Uma Vance,  Tablet  ,2,449.99,899.98,West
+2024-02-08,Uma Vance,Tablet,2,449.99,899.98,West

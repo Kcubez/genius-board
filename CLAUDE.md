@@ -133,6 +133,25 @@ sale-data-analysis-dashboard/
 1. Implement filtered CSV export
 2. Add PDF/Image export (optional)
 
+### Phase 8: Data Cleaning (NEW)
+
+1. Analyze data for quality issues
+   - Duplicate row detection
+   - Missing value detection
+   - Whitespace issues
+   - Case inconsistencies
+2. Build DataCleanerModal component
+   - Multi-step wizard (Analyze → Configure → Preview → Result)
+   - Visual issue indicators with severity badges
+3. Implement cleaning operations
+   - Remove duplicates
+   - Remove empty rows
+   - Trim whitespace
+   - Normalize text case (lowercase/uppercase/titlecase)
+   - Handle missing values (remove row, fill with average/median/mode/custom)
+4. API integration for saving cleaned data
+5. Bilingual support (EN/MM)
+
 ---
 
 ## Key Commands

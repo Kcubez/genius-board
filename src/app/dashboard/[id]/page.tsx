@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Trash2,
   RefreshCw,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,11 +20,13 @@ import { KpiCards } from '@/components/dashboard/KpiCards';
 import { FilterPanel } from '@/components/dashboard/FilterPanel';
 import { ChartContainer } from '@/components/dashboard/ChartContainer';
 import { EditableTable } from '@/components/csv/EditableTable';
+import { DataCleanerModal } from '@/components/dashboard/DataCleanerModal';
 import { useLanguage } from '@/context/LanguageContext';
 import { Filter } from '@/types/filter';
 import { ColumnInfo, CsvData } from '@/types/csv';
 import { calculateKpis, detectKpiColumns } from '@/lib/kpi-calculator';
 import { convertToCsv, downloadCsv } from '@/lib/csv-parser';
+import { CleaningResult } from '@/types/data-cleaner';
 import { toast } from 'sonner';
 
 interface DataRow {
@@ -52,6 +55,8 @@ export default function DatasetDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filter[]>([]);
   const [priorityColumn, setPriorityColumn] = useState<string | null>(null);
+  const [showDataCleaner, setShowDataCleaner] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
 
   // Fetch dataset from Supabase
   useEffect(() => {
@@ -238,6 +243,42 @@ export default function DatasetDashboardPage() {
     }
   }, [datasetId, router]);
 
+  // Data cleaning handler
+  const handleCleanComplete = useCallback(
+    async (
+      cleanedData: Record<string, string | number | Date | null>[],
+      result: CleaningResult
+    ) => {
+      setIsCleaning(true);
+      try {
+        // Update the dataset with cleaned data via API
+        const response = await fetch(`/api/datasets/${datasetId}/clean`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cleanedData }),
+        });
+
+        const apiResult = await response.json();
+
+        if (apiResult.success) {
+          toast.success(t('dataCleaner.cleaningComplete') || 'Cleaning Complete!', {
+            description: `Removed ${result.removedRows} rows, modified ${result.modifiedCells} cells`,
+          });
+          // Refresh the data
+          refreshData();
+        } else {
+          throw new Error(apiResult.error);
+        }
+      } catch (error) {
+        console.error('Error saving cleaned data:', error);
+        toast.error('Failed to save cleaned data');
+      } finally {
+        setIsCleaning(false);
+      }
+    },
+    [datasetId, refreshData, t]
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -277,6 +318,20 @@ export default function DatasetDashboardPage() {
           >
             <LayoutGrid className="h-4 w-4" />
             <span className="hidden sm:inline">All Reports</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDataCleaner(true)}
+            disabled={isCleaning}
+            className="gap-2 border-violet-500 text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"
+          >
+            {isCleaning ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">{t('dataCleaner.button') || 'Clean Data'}</span>
           </Button>
           <Button
             variant="outline"
@@ -362,6 +417,15 @@ export default function DatasetDashboardPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Data Cleaner Modal */}
+      <DataCleanerModal
+        open={showDataCleaner}
+        onOpenChange={setShowDataCleaner}
+        data={csvData.rows}
+        columns={csvData.columns}
+        onCleanComplete={handleCleanComplete}
+      />
     </div>
   );
 }
