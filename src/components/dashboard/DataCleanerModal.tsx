@@ -569,15 +569,37 @@ export function DataCleanerModal({
           {/* Step 4: Result */}
           {step === 'result' && result && (
             <div className="space-y-4">
-              <Card className="border-green-200 bg-green-50/50">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                    <Check className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-green-700 mb-2">Cleaning Complete!</h3>
-                  <p className="text-muted-foreground">Your data has been successfully cleaned</p>
-                </CardContent>
-              </Card>
+              {/* Check if any changes were made */}
+              {result.removedRows === 0 && result.modifiedCells === 0 ? (
+                /* No changes needed - informational message */
+                <Card className="border-blue-200 bg-blue-50/50">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                      <Info className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-blue-700 mb-2">
+                      {t('dataCleaner.noChangesNeeded') || 'No Changes Needed'}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {t('dataCleaner.noDataModified') ||
+                        'Your data is already clean! No modifications were necessary.'}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                /* Changes were made - success message */
+                <Card className="border-green-200 bg-green-50/50">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                      <Check className="h-8 w-8 text-green-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-green-700 mb-2">
+                      Cleaning Complete!
+                    </h3>
+                    <p className="text-muted-foreground">Your data has been successfully cleaned</p>
+                  </CardContent>
+                </Card>
+              )}
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-4 bg-muted/50 rounded-lg text-center">

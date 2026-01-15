@@ -261,9 +261,18 @@ export default function DatasetDashboardPage() {
         const apiResult = await response.json();
 
         if (apiResult.success) {
-          toast.success(t('dataCleaner.cleaningComplete') || 'Cleaning Complete!', {
-            description: `Removed ${result.removedRows} rows, modified ${result.modifiedCells} cells`,
-          });
+          // Show appropriate toast based on whether any changes were made
+          if (result.removedRows === 0 && result.modifiedCells === 0) {
+            toast.info(t('dataCleaner.noChangesNeeded') || 'No Changes Needed', {
+              description:
+                t('dataCleaner.noDataModified') ||
+                'Your data is already clean! No modifications were necessary.',
+            });
+          } else {
+            toast.success(t('dataCleaner.cleaningComplete') || 'Cleaning Complete!', {
+              description: `Removed ${result.removedRows} rows, modified ${result.modifiedCells} cells`,
+            });
+          }
           // Refresh the data
           refreshData();
         } else {

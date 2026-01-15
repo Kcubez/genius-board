@@ -124,6 +124,8 @@
     "saveClose": "Save & Close",
     "discardChanges": "Discard Changes",
     "previewChanges": "Preview Changes",
-    "configureCleaning": "Configure Cleaning"
+    "configureCleaning": "Configure Cleaning",
+    "noChangesNeeded": "No Changes Needed",
+    "noDataModified": "Your data is already clean! No modifications were necessary."
   }
 }
