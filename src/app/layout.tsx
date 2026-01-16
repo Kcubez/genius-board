@@ -19,10 +19,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Sales Data Analysis Dashboard',
+  title: 'Genius Board',
   description:
     'Upload CSV files and analyze sales data with dynamic filtering, KPIs, and visualizations',
-  keywords: ['sales', 'analytics', 'dashboard', 'CSV', 'data analysis'],
+  keywords: ['sales', 'analytics', 'dashboard', 'CSV', 'data analysis', 'genius board'],
 };
 
 export default function RootLayout({

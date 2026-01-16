@@ -5,7 +5,7 @@ const USER_JWT_SECRET = new TextEncoder().encode(
   process.env.USER_JWT_SECRET || 'user-secret-key-change-in-production'
 );
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip auth check for static assets

@@ -1,8 +1,8 @@
-# CLAUDE.md - Sales Data Analysis Dashboard
+# CLAUDE.md - Genius Board
 
 ## Project Overview
 
-This is a **Sales Data Analysis Dashboard** built with Next.js that allows users to upload CSV files and analyze sales data with dynamic filtering, KPIs, and visualizations. The dashboard supports bilingual UI (Myanmar/English).
+This is **Genius Board**, a sales data analysis dashboard built with Next.js that allows users to upload CSV files and analyze sales data with dynamic filtering, KPIs, and visualizations. The dashboard supports bilingual UI (Myanmar/English).
 
 ---
 
@@ -20,7 +20,7 @@ This is a **Sales Data Analysis Dashboard** built with Next.js that allows users
 ## Project Structure
 
 ```
-sale-data-analysis-dashboard/
+genius-board/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── layout.tsx          # Root layout

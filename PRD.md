@@ -2,7 +2,7 @@
 
 ## Product Name
 
-**Sales Data Analysis Dashboard (CSV-based)**
+**Genius Board (CSV-based Sales Data Analysis)**
 
 ## Version
 

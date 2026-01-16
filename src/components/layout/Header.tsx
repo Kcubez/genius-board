@@ -37,7 +37,7 @@ export function Header() {
             <LayoutDashboard className="h-5 w-5 text-white" />
           </div>
           <span className="bg-linear-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-            Sales Dashboard
+            Genius Board
           </span>
         </Link>
 

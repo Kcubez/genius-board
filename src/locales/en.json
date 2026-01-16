@@ -37,7 +37,7 @@
     "FILE_TOO_LARGE": "File is too large"
   },
   "dashboard": {
-    "title": "Sales Dashboard",
+    "title": "Genius Board",
     "kpi": {
       "totalSales": "Total Sales",
       "totalOrders": "Total Orders",

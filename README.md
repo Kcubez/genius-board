@@ -1,4 +1,4 @@
-# 📊 Sales Data Analysis Dashboard
+# 📊 Genius Board
 
 A powerful, full-featured web-based **Sales Data Analysis Dashboard** that enables users to upload CSV sales datasets and instantly view, filter, analyze, and visualize their data with dynamic, column-based insights. Built with **Next.js 16**, **TypeScript**, and **PostgreSQL**.
 
@@ -97,7 +97,7 @@ All KPIs dynamically recalculate when filters change to ensure 100% data consist
 ## 📁 Project Structure
 
 ```
-sale-data-analysis-dashboard/
+genius-board/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── layout.tsx          # Root layout
@@ -138,8 +138,8 @@ sale-data-analysis-dashboard/
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/Kcubez/sale-data-analysis-dashboard.git
-   cd sale-data-analysis-dashboard
+   git clone https://github.com/Kcubez/genius-board.git
+   cd genius-board
    ```
 
 2. **Install dependencies**
