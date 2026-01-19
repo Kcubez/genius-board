@@ -334,15 +334,6 @@ export default function DatasetDashboardPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.push('/dashboard')}
-            className="gap-2 border-gray-400 text-gray-600 hover:bg-gray-50 hover:text-gray-700 transition-colors"
-          >
-            <LayoutGrid className="h-4 w-4" />
-            <span className="hidden sm:inline">All Reports</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             onClick={() => setShowDataCleaner(true)}
             disabled={isCleaning}
             className="gap-2 border-violet-500 text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"

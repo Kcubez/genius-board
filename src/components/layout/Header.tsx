@@ -51,15 +51,15 @@ export function Header() {
             </span>
           </Button>
 
-          {/* My Reports Button */}
+          {/* All Reports Button */}
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/dashboard/reports')}
             className="gap-2"
-            title="My Reports"
           >
             <FolderOpen className="h-4 w-4" />
+            <span className="hidden sm:inline">All Reports</span>
           </Button>
 
           {/* User Menu */}

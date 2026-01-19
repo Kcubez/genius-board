@@ -5,7 +5,6 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import { CsvProvider } from '@/context/CsvContext';
 import { FilterProvider } from '@/context/FilterContext';
 import { AuthProvider } from '@/context/AuthContext';
-import { Header } from '@/components/layout/Header';
 import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = Geist({
