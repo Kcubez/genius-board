@@ -224,7 +224,7 @@ export function generateCleaningPreview(
     });
   }
 
-  if (options.normalizeCase && options.caseStrategy !== 'none') {
+  if (options.normalizeCase) {
     Object.values(summary.caseInconsistencies).forEach(variations => {
       variations.forEach(v => {
         estimatedModifications += v.count;
@@ -459,7 +459,7 @@ export function cleanData(
   }
 
   // 5. Normalize case
-  if (options.normalizeCase && options.caseStrategy !== 'none') {
+  if (options.normalizeCase) {
     cleanedRows.forEach((row, index) => {
       columnsToProcess
         .filter(c => c.type === 'text' || c.type === 'category')
@@ -504,7 +504,7 @@ export function getDefaultCleaningOptions(): CleaningOptions {
     removeDuplicates: true,
     trimWhitespace: true,
     normalizeCase: false,
-    caseStrategy: 'none',
+    caseStrategy: 'lowercase',
     handleMissingValues: false,
     missingValueStrategy: 'fill_empty',
     customFillValue: '',

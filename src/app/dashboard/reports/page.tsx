@@ -326,7 +326,7 @@ export default function ReportsPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-600 hover:bg-red-50 -mt-1 -mr-1 rounded-full transition-opacity"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 -mt-1 -mr-1 rounded-full transition-colors"
                   onClick={e => handleDeleteClick(dataset, e)}
                 >
                   <Trash2 className="h-4 w-4" />

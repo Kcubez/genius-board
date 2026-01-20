@@ -2,7 +2,7 @@ import Papa from 'papaparse';
 import { CsvData, ColumnInfo, ColumnType, CsvParseResult, CsvErrorCode } from '@/types/csv';
 
 // Detect column type from sample values
-function detectColumnType(values: (string | null | undefined)[]): ColumnType {
+function detectColumnType(values: (string | null | undefined)[], columnName?: string): ColumnType {
   const nonEmptyValues = values.filter(v => v !== null && v !== undefined && v !== '');
 
   if (nonEmptyValues.length === 0) return 'text';
@@ -36,7 +36,29 @@ function detectColumnType(values: (string | null | undefined)[]): ColumnType {
 
   // Check if it's a category (limited unique values)
   const uniqueValues = new Set(sampleValues);
-  if (uniqueValues.size <= 20 && nonEmptyValues.length > uniqueValues.size * 2) {
+
+  // Check if column name suggests it should be treated as category (name/customer-like columns)
+  const nameLowercase = (columnName || '').toLowerCase();
+  const isNameLikeColumn = [
+    'customer',
+    'client',
+    'name',
+    'user',
+    'buyer',
+    'seller',
+    'vendor',
+    'supplier',
+    'person',
+    'employee',
+    'staff',
+    'agent',
+  ].some(keyword => nameLowercase.includes(keyword));
+
+  // For name-like columns, allow up to 100 unique values as category
+  // For other columns, allow up to 30 unique values
+  const categoryThreshold = isNameLikeColumn ? 100 : 30;
+
+  if (uniqueValues.size <= categoryThreshold && nonEmptyValues.length > uniqueValues.size * 2) {
     return 'category';
   }
 
@@ -126,7 +148,7 @@ function parseExcel(file: File): Promise<CsvParseResult> {
         // Build column info using the same logic as CSV
         const columns: ColumnInfo[] = headers.map(header => {
           const values = rows.map(row => row[header]);
-          const type = detectColumnType(values);
+          const type = detectColumnType(values, header);
 
           const columnInfo: ColumnInfo = {
             name: header,
@@ -243,7 +265,7 @@ function parseCsvFile(file: File): Promise<CsvParseResult> {
         // Build column info
         const columns: ColumnInfo[] = headers.map(header => {
           const values = results.data.map(row => row[header]);
-          const type = detectColumnType(values);
+          const type = detectColumnType(values, header);
 
           const columnInfo: ColumnInfo = {
             name: header,

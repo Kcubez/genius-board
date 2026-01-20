@@ -53,13 +53,13 @@ export function Header() {
 
           {/* All Reports Button */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => router.push('/dashboard/reports')}
-            className="gap-2"
+            className="gap-2 border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-800 hover:border-violet-300 transition-all"
           >
             <FolderOpen className="h-4 w-4" />
-            <span className="hidden sm:inline">All Reports</span>
+            <span className="hidden sm:inline font-medium">All Reports</span>
           </Button>
 
           {/* User Menu */}
