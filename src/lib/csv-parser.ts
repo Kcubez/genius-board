@@ -54,11 +54,19 @@ function detectColumnType(values: (string | null | undefined)[], columnName?: st
     'agent',
   ].some(keyword => nameLowercase.includes(keyword));
 
-  // For name-like columns, allow up to 100 unique values as category
+  // For name-like columns, no limit (always category)
   // For other columns, allow up to 30 unique values
-  const categoryThreshold = isNameLikeColumn ? 100 : 30;
+  const categoryThreshold = 30;
 
-  if (uniqueValues.size <= categoryThreshold && nonEmptyValues.length > uniqueValues.size * 2) {
+  // Name-like columns: ALWAYS treated as category (no limit on unique values)
+  // Other columns: need repetition (2x rule) and limited unique values to be considered category
+  if (isNameLikeColumn && nonEmptyValues.length >= 2) {
+    return 'category';
+  } else if (
+    !isNameLikeColumn &&
+    uniqueValues.size <= categoryThreshold &&
+    nonEmptyValues.length > uniqueValues.size * 2
+  ) {
     return 'category';
   }
 
