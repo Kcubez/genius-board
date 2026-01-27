@@ -206,7 +206,9 @@ export function FilterPanel({
         )}
 
         {filters.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">{t('common.noData')}</p>
+          <p className="text-sm text-muted-foreground text-center py-4">
+            Select a column above to add a filter
+          </p>
         )}
       </CardContent>
     </Card>
@@ -400,7 +402,7 @@ function CategoryFilterInput({
 
   const toggleAll = () => {
     onUpdate({
-      values: allSelected ? [] : column.uniqueValues ?? [],
+      values: allSelected ? [] : (column.uniqueValues ?? []),
     });
   };
 

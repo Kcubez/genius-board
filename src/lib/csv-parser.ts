@@ -10,21 +10,30 @@ function detectColumnType(values: (string | null | undefined)[], columnName?: st
   // Sample up to 100 values for detection
   const sampleValues = nonEmptyValues.slice(0, 100);
 
-  // Check if all values are dates
+  // Check column name for date hints FIRST
+  const lowerColName = (columnName || '').toLowerCase();
+  const isDateColumnName = ['date', 'time', 'created', 'updated', 'timestamp'].some(hint =>
+    lowerColName.includes(hint)
+  );
+
+  // Check if values match strict date patterns
   const datePatterns = [
     /^\d{4}-\d{2}-\d{2}$/, // YYYY-MM-DD
+    /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/, // YYYY-MM-DD HH:MM or with T
     /^\d{2}\/\d{2}\/\d{4}$/, // MM/DD/YYYY
     /^\d{2}-\d{2}-\d{4}$/, // DD-MM-YYYY
     /^\d{4}\/\d{2}\/\d{2}$/, // YYYY/MM/DD
   ];
 
-  const isDate = sampleValues.every(v => {
-    if (datePatterns.some(pattern => pattern.test(v as string))) return true;
-    const date = new Date(v as string);
-    return !isNaN(date.getTime()) && v!.toString().length > 6;
-  });
+  const matchesDatePattern = sampleValues.every(v =>
+    datePatterns.some(pattern => pattern.test(v as string))
+  );
 
-  if (isDate) return 'date';
+  // Only detect as date if: column name contains date hint AND values match patterns
+  // OR if values strongly match date patterns (YYYY-MM-DD format)
+  if (isDateColumnName && matchesDatePattern) return 'date';
+  if (matchesDatePattern && sampleValues.every(v => /^\d{4}-\d{2}-\d{2}/.test(v as string)))
+    return 'date';
 
   // Check if all values are numbers
   const isNumber = sampleValues.every(v => {
@@ -179,7 +188,7 @@ function parseExcel(file: File): Promise<CsvParseResult> {
 
         // Convert rows with proper types
         const typedRows = rows.map(row => {
-          const typedRow: Record<string, string | number | Date | null> = {};
+          const typedRow: Record<string, string | number | null> = {};
 
           columns.forEach(col => {
             const value = row[col.name];
@@ -189,7 +198,8 @@ function parseExcel(file: File): Promise<CsvParseResult> {
             } else if (col.type === 'number') {
               typedRow[col.name] = parseFloat(String(value).replace(/[,$]/g, ''));
             } else if (col.type === 'date') {
-              typedRow[col.name] = new Date(value);
+              // Keep date as string to avoid JSON serialization issues
+              typedRow[col.name] = String(value);
             } else {
               typedRow[col.name] = value;
             }
@@ -296,7 +306,7 @@ function parseCsvFile(file: File): Promise<CsvParseResult> {
 
         // Convert rows with proper types
         const rows = results.data.map(row => {
-          const typedRow: Record<string, string | number | Date | null> = {};
+          const typedRow: Record<string, string | number | null> = {};
 
           columns.forEach(col => {
             const value = row[col.name];
@@ -306,7 +316,8 @@ function parseCsvFile(file: File): Promise<CsvParseResult> {
             } else if (col.type === 'number') {
               typedRow[col.name] = parseFloat(String(value).replace(/[,$]/g, ''));
             } else if (col.type === 'date') {
-              typedRow[col.name] = new Date(value);
+              // Keep date as string to avoid JSON serialization issues
+              typedRow[col.name] = String(value);
             } else {
               typedRow[col.name] = value;
             }
@@ -341,11 +352,11 @@ function parseCsvFile(file: File): Promise<CsvParseResult> {
 
 // Main parser function - handles both CSV and Excel
 export function parseCsv(file: File): Promise<CsvParseResult> {
-  // Check file size (10MB limit)
-  if (file.size > 10 * 1024 * 1024) {
+  // Check file size (4MB limit for Vercel compatibility)
+  if (file.size > 4 * 1024 * 1024) {
     return Promise.resolve({
       success: false,
-      error: 'File size exceeds 10MB limit',
+      error: 'File size exceeds 4MB limit',
       errorCode: 'FILE_TOO_LARGE',
     });
   }

@@ -63,7 +63,7 @@ export function useDataset() {
     }
   }, []);
 
-  // Save dataset to database
+  // Save dataset to database (with chunked upload for large files)
   const saveDataset = useCallback(
     async (
       name: string,
@@ -73,15 +73,72 @@ export function useDataset() {
     ): Promise<Dataset | null> => {
       setLoading(true);
       setError(null);
+
+      // Chunk size - 200 rows per chunk (~5-7s per chunk on Vercel Hobby)
+      const CHUNK_SIZE = 200;
+      const totalChunks = Math.ceil(rows.length / CHUNK_SIZE);
+
       try {
-        const response = await fetch('/api/datasets', {
+        // For small datasets (< 200 rows), use simple upload
+        if (rows.length <= CHUNK_SIZE) {
+          const response = await fetch('/api/datasets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, fileName, columns, rows }),
+          });
+          const result = await response.json();
+          if (!result.success) throw new Error(result.error);
+          return result.dataset;
+        }
+
+        // For large datasets, create dataset first, then upload rows in chunks
+        // Step 1: Create dataset without rows
+        const createResponse = await fetch('/api/datasets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, fileName, columns, rows }),
+          body: JSON.stringify({
+            name,
+            fileName,
+            columns,
+            rows: [], // Empty initially
+            chunkedUpload: true,
+            totalRows: rows.length,
+          }),
         });
-        const result = await response.json();
-        if (!result.success) throw new Error(result.error);
-        return result.dataset;
+        const createResult = await createResponse.json();
+        if (!createResult.success) throw new Error(createResult.error);
+
+        const datasetId = createResult.dataset.id;
+
+        // Step 2: Upload rows in chunks
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, rows.length);
+          const chunk = rows.slice(start, end);
+
+          const chunkResponse = await fetch('/api/datasets/chunk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              datasetId,
+              rows: chunk,
+              startIndex: start,
+              isLastChunk: i === totalChunks - 1,
+            }),
+          });
+
+          const chunkResult = await chunkResponse.json();
+          if (!chunkResult.success) {
+            // Cleanup: delete partial dataset on failure
+            await fetch(`/api/datasets/${datasetId}`, { method: 'DELETE' });
+            throw new Error(chunkResult.error || `Failed to upload chunk ${i + 1}/${totalChunks}`);
+          }
+        }
+
+        // Return the complete dataset
+        const finalResponse = await fetch(`/api/datasets/${datasetId}`);
+        const finalResult = await finalResponse.json();
+        return finalResult.dataset || createResult.dataset;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to save dataset');
         return null;

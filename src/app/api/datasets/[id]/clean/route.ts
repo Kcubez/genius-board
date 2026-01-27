@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyUserSession } from '@/lib/user-auth';
 
-// POST - Apply cleaned data to dataset
+// Batch size for inserting rows
+const BATCH_SIZE = 500;
+// Max rows per request to stay under Vercel's 4.5MB limit
+const MAX_ROWS_PER_REQUEST = 1000;
+
+// POST - Apply cleaned data to dataset (supports chunked uploads)
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await verifyUserSession();
@@ -12,7 +17,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const { id } = await params;
-    const { cleanedData } = await request.json();
+
+    let body: {
+      cleanedData?: Record<string, unknown>[];
+      chunkIndex?: number;
+      totalChunks?: number;
+      totalRows?: number;
+    };
+
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError);
+      return NextResponse.json(
+        { success: false, error: 'Request body too large. Try with smaller dataset.' },
+        { status: 400 }
+      );
+    }
+
+    const { cleanedData, chunkIndex, totalChunks, totalRows } = body;
 
     if (!cleanedData || !Array.isArray(cleanedData)) {
       return NextResponse.json(
@@ -30,38 +53,62 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ success: false, error: 'Dataset not found' }, { status: 404 });
     }
 
-    // Start a transaction to replace all rows with cleaned data
-    await prisma.$transaction(async tx => {
-      // Delete all existing rows
-      await tx.dataRow.deleteMany({
+    const isChunkedUpload = chunkIndex !== undefined && totalChunks !== undefined;
+    const isFirstChunk = chunkIndex === 0;
+    const isLastChunk = chunkIndex === (totalChunks ?? 1) - 1;
+
+    // For first chunk (or non-chunked upload), delete all existing rows
+    if (isFirstChunk || !isChunkedUpload) {
+      await prisma.dataRow.deleteMany({
         where: { datasetId: id },
       });
+    }
 
-      // Insert cleaned rows
-      if (cleanedData.length > 0) {
-        await tx.dataRow.createMany({
-          data: cleanedData.map((row: Record<string, unknown>, index: number) => ({
-            datasetId: id,
-            rowIndex: index,
-            data: row as object,
-          })),
-        });
+    // Calculate starting row index for this chunk
+    const startRowIndex = isChunkedUpload ? (chunkIndex ?? 0) * MAX_ROWS_PER_REQUEST : 0;
+
+    // Insert cleaned rows in batches
+    if (cleanedData.length > 0) {
+      for (let i = 0; i < cleanedData.length; i += BATCH_SIZE) {
+        const batch = cleanedData.slice(i, i + BATCH_SIZE);
+
+        try {
+          await prisma.dataRow.createMany({
+            data: batch.map((row, index) => ({
+              datasetId: id,
+              rowIndex: startRowIndex + i + index,
+              data: row as object,
+            })),
+          });
+        } catch (batchError) {
+          console.error(`Error inserting batch:`, batchError);
+          // Continue with remaining batches
+        }
       }
+    }
 
-      // Update the dataset row count
-      await tx.dataset.update({
+    // Update row count only on last chunk or non-chunked upload
+    if (isLastChunk || !isChunkedUpload) {
+      const finalRowCount = totalRows ?? cleanedData.length;
+      await prisma.dataset.update({
         where: { id },
-        data: { rowCount: cleanedData.length },
+        data: { rowCount: finalRowCount },
       });
-    });
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Data cleaned successfully',
-      newRowCount: cleanedData.length,
+      message: isChunkedUpload
+        ? `Chunk ${(chunkIndex ?? 0) + 1}/${totalChunks} processed`
+        : 'Data cleaned successfully',
+      chunkIndex,
+      isComplete: isLastChunk || !isChunkedUpload,
     });
   } catch (error) {
-    console.error('Error applying cleaned data:', error);
+    console.error('Error applying cleaned data:', {
+      error: error instanceof Error ? error.message : error,
+    });
+
     return NextResponse.json(
       { success: false, error: 'Failed to apply cleaned data' },
       { status: 500 }

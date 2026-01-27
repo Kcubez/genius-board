@@ -23,7 +23,7 @@ export default function DashboardPage() {
       const result = await parseCsv(file);
 
       if (!result.success || !result.data) {
-        toast.error('Failed to parse file');
+        toast.error(result.error || 'Failed to parse file');
         setUploading(false);
         return;
       }
@@ -51,6 +51,10 @@ export default function DashboardPage() {
       toast.error('Upload failed');
     } finally {
       setUploading(false);
+      // Reset file input so same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 

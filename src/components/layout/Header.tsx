@@ -1,12 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Languages, LayoutDashboard, LogOut, User, FolderOpen } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronDown, LayoutDashboard, LogOut, User, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import ukFlag from '../../../UKFlag.png';
+import myanmarFlag from '../../../MyanmarFlag.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +21,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export function Header() {
-  const { language, toggleLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const { user, signOut } = useAuth();
   const router = useRouter();
 
@@ -44,12 +47,72 @@ export function Header() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           {/* Language Toggle */}
-          <Button variant="ghost" size="sm" onClick={toggleLanguage} className="gap-2">
-            <Languages className="h-4 w-4" />
-            <span className={cn('font-medium', language === 'mm' && 'font-pyidaungsu')}>
-              {language === 'en' ? 'EN' : 'မြန်မာ'}
-            </span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 w-24 justify-between gap-2 rounded-2xl border-slate-200/70 bg-white/90 px-3 shadow-sm transition hover:bg-white hover:shadow-md sm:gap-3"
+              >
+                <span className="flex items-center gap-2">
+                  <Image
+                    src={language === 'en' ? ukFlag : myanmarFlag}
+                    alt={language === 'en' ? 'English' : 'Myanmar'}
+                    width={24}
+                    height={16}
+                    className="h-4 w-6 rounded-sm border border-slate-200/80 object-cover"
+                  />
+                  <span className={cn('font-medium', language === 'mm' && 'font-pyidaungsu')}>
+                    {language === 'en' ? 'EN' : 'MM'}
+                  </span>
+                </span>
+                <ChevronDown className="h-4 w-4 text-slate-500" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-24! rounded-2xl border-slate-200 p-1 shadow-xl"
+            >
+              <DropdownMenuItem
+                onClick={() => setLanguage('en')}
+                className="flex items-center gap-2 rounded-xl px-3 py-2"
+              >
+                <span className="flex items-center gap-2 translate-x-[-8px]">
+                  <Image
+                    src={ukFlag}
+                    alt="English"
+                    width={24}
+                    height={16}
+                    className={cn(
+                      'h-4 w-6 rounded-sm border border-slate-200/80 object-cover',
+                      language === 'en' && 'ring-1 ring-violet-200'
+                    )}
+                  />
+                  <span className="font-medium">EN</span>
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setLanguage('mm')}
+                className="flex items-center gap-2 rounded-xl px-3 py-2"
+              >
+                <span className="flex items-center gap-2 translate-x-[-8px]">
+                  <Image
+                    src={myanmarFlag}
+                    alt="Myanmar"
+                    width={24}
+                    height={16}
+                    className={cn(
+                      'h-4 w-6 rounded-sm border border-slate-200/80 object-cover',
+                      language === 'mm' && 'ring-1 ring-violet-200'
+                    )}
+                  />
+                  <span className={cn('font-medium', language === 'mm' && 'font-pyidaungsu')}>
+                    MM
+                  </span>
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* All Reports Button */}
           <Button

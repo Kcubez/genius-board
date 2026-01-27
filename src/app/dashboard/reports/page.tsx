@@ -71,38 +71,138 @@ export default function ReportsPage() {
     setUploading(true);
 
     try {
-      const result = await parseCsv(file);
-
-      if (!result.success || !result.data) {
-        toast.error('Failed to parse file');
+      // File size validation (25MB limit)
+      const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(
+          `File too large! Maximum size is 25MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB`
+        );
         setUploading(false);
         return;
       }
 
-      const response = await fetch('/api/datasets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: file.name.replace(/\.[^/.]+$/, ''),
-          fileName: file.name,
-          columns: result.data.columns,
-          rows: result.data.rows,
-        }),
-      });
+      // File type validation
+      const validTypes = ['.csv', '.xlsx', '.xls'];
+      const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+      if (!validTypes.includes(fileExtension)) {
+        toast.error(`Invalid file type! Only CSV and Excel files are supported.`);
+        setUploading(false);
+        return;
+      }
 
-      const saveResult = await response.json();
+      const result = await parseCsv(file);
 
-      if (saveResult.success) {
-        toast.success(`${result.data.totalRows} rows uploaded!`);
-        setShowUploadModal(false);
-        router.push(`/dashboard/${saveResult.dataset.id}`);
+      if (!result.success || !result.data) {
+        // Show specific error message from parser
+        const errorMessage = result.error || 'Failed to parse file. Please check the file format.';
+        toast.error(errorMessage);
+        setUploading(false);
+        return;
+      }
+
+      const rows = result.data.rows;
+      const CHUNK_SIZE = 200; // 200 rows per chunk (~5-7s per chunk)
+      const totalChunks = Math.ceil(rows.length / CHUNK_SIZE);
+
+      // For small files (< 200 rows), use simple upload
+      if (rows.length <= CHUNK_SIZE) {
+        const response = await fetch('/api/datasets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: file.name.replace(/\.[^/.]+$/, ''),
+            fileName: file.name,
+            columns: result.data.columns,
+            rows: result.data.rows,
+          }),
+        });
+
+        const saveResult = await response.json();
+        if (saveResult.success) {
+          toast.success(`${result.data.totalRows} rows uploaded!`);
+          setShowUploadModal(false);
+          router.push(`/dashboard/${saveResult.dataset.id}`);
+        } else {
+          throw new Error(saveResult.error);
+        }
       } else {
-        throw new Error(saveResult.error);
+        // For large files, use chunked upload
+        toast.loading(`Uploading ${rows.length} rows...`, {
+          id: 'upload-progress',
+          duration: Infinity,
+        });
+
+        // Step 1: Create dataset without rows
+        const createResponse = await fetch('/api/datasets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: file.name.replace(/\.[^/.]+$/, ''),
+            fileName: file.name,
+            columns: result.data.columns,
+            rows: [],
+            chunkedUpload: true,
+            totalRows: rows.length,
+          }),
+        });
+
+        const createResult = await createResponse.json();
+        if (!createResult.success) throw new Error(createResult.error);
+
+        const datasetId = createResult.dataset.id;
+
+        // Step 2: Upload rows in chunks
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, rows.length);
+          const chunk = rows.slice(start, end);
+
+          const chunkResponse = await fetch('/api/datasets/chunk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              datasetId,
+              rows: chunk,
+              startIndex: start,
+              isLastChunk: i === totalChunks - 1,
+            }),
+          });
+
+          const chunkResult = await chunkResponse.json();
+          if (!chunkResult.success) {
+            toast.dismiss('upload-progress');
+            await fetch(`/api/datasets/${datasetId}`, { method: 'DELETE' });
+            throw new Error(chunkResult.error || `Failed chunk ${i + 1}/${totalChunks}`);
+          }
+
+          // Update progress - stays visible with duration: Infinity
+          const progress = Math.round((end / rows.length) * 100);
+          toast.loading(
+            `Uploading: ${end.toLocaleString()} of ${rows.length.toLocaleString()} rows (${progress}%)`,
+            {
+              id: 'upload-progress',
+              duration: Infinity,
+            }
+          );
+        }
+
+        // Success - dismiss loading and show success
+        toast.success(`${rows.length.toLocaleString()} rows uploaded successfully!`, {
+          id: 'upload-progress',
+          duration: 3000,
+        });
+        setShowUploadModal(false);
+        router.push(`/dashboard/${datasetId}`);
       }
     } catch (error) {
-      toast.error('Upload failed');
+      console.error('Upload error:', error);
+      toast.error(error instanceof Error ? error.message : 'Upload failed');
     } finally {
       setUploading(false);
+      // Reset file input so same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 

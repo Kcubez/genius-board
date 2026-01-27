@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo, useCallback, useState, useEffect, useDeferredValue, memo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   Download,
@@ -65,6 +65,10 @@ export default function DatasetDashboardPage() {
   const [priorityColumn, setPriorityColumn] = useState<string | null>(null);
   const [showDataCleaner, setShowDataCleaner] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
+  const [cleaningProgress, setCleaningProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -118,17 +122,73 @@ export default function DatasetDashboardPage() {
   }, [dataset]);
 
   // Convert dataset rows to CSV data format
+  // Also recalculate uniqueValues for category columns from actual data
   const csvData: CsvData | null = useMemo(() => {
     if (!dataset) return null;
 
+    const rows = rowsWithIds.map(r => r.data);
+
+    // Recalculate uniqueValues for category columns from actual data
+    // This ensures filters always reflect the current state of the data
+    const columnsWithUpdatedUniqueValues = dataset.columns.map(column => {
+      if (column.type === 'category') {
+        const uniqueValues = Array.from(
+          new Set(
+            rows
+              .map(row => row[column.name])
+              .filter((v): v is string => v != null && v !== '')
+              .map(v => String(v))
+          )
+        ).sort();
+        return { ...column, uniqueValues };
+      }
+      return column;
+    });
+
     return {
-      columns: dataset.columns,
-      rows: rowsWithIds.map(r => r.data),
+      columns: columnsWithUpdatedUniqueValues,
+      rows,
       rawHeaders: dataset.columns.map(c => c.name),
       fileName: dataset.fileName,
       totalRows: dataset.rowCount,
     };
   }, [dataset, rowsWithIds]);
+
+  // Sync category filters when data changes (e.g., after row edit)
+  // This ensures filter selections stay valid and dropdown options update
+  useEffect(() => {
+    if (!csvData?.columns || filters.length === 0) return;
+
+    setFilters(prevFilters => {
+      let hasChanges = false;
+      const updatedFilters = prevFilters.map(filter => {
+        if (filter.columnType !== 'category') return filter;
+
+        const column = csvData.columns.find(c => c.name === filter.columnName);
+        if (!column || !column.uniqueValues) return filter;
+
+        // Get the new unique values from the recalculated column
+        const newUniqueValues = new Set(column.uniqueValues);
+
+        // Filter out any selected values that no longer exist in the data
+        const validSelectedValues = filter.values.filter(v => newUniqueValues.has(v));
+
+        // Check if we need to update the filter
+        if (validSelectedValues.length !== filter.values.length) {
+          hasChanges = true;
+          return {
+            ...filter,
+            values: validSelectedValues.length > 0 ? validSelectedValues : column.uniqueValues,
+          };
+        }
+
+        return filter;
+      });
+
+      // Only update state if there were actual changes
+      return hasChanges ? updatedFilters : prevFilters;
+    });
+  }, [csvData?.columns]);
 
   // Apply filters to get filtered rows (keeping IDs attached) - O(n) complexity
   const filteredRowsWithIds = useMemo(() => {
@@ -207,13 +267,18 @@ export default function DatasetDashboardPage() {
     return filteredRowsWithIds.map(r => r.data);
   }, [filteredRowsWithIds]);
 
-  // Calculate KPIs
+  // Use deferred values to prevent UI blocking during expensive calculations
+  // This allows the UI to remain responsive while filtering/charting runs in background
+  const deferredFilteredData = useDeferredValue(filteredData);
+  const isFiltering = deferredFilteredData !== filteredData;
+
+  // Calculate KPIs using deferred data for better performance
   const kpiData = useMemo(() => {
-    if (!csvData || filteredData.length === 0) return null;
+    if (!csvData || deferredFilteredData.length === 0) return null;
 
     const kpiColumns = detectKpiColumns(csvData.columns);
-    return calculateKpis(filteredData, kpiColumns);
-  }, [csvData, filteredData]);
+    return calculateKpis(deferredFilteredData, kpiColumns);
+  }, [csvData, deferredFilteredData]);
 
   // Get filtered row IDs - now O(1) since IDs are already attached!
   const filteredRowIds = useMemo(() => {
@@ -255,7 +320,7 @@ export default function DatasetDashboardPage() {
     }
   }, [datasetId, router]);
 
-  // Data cleaning handler
+  // Data cleaning handler - sends data in chunks to avoid Vercel's size limit
   const handleCleanComplete = useCallback(
     async (
       cleanedData: Record<string, string | number | Date | null>[],
@@ -263,33 +328,78 @@ export default function DatasetDashboardPage() {
     ) => {
       setIsCleaning(true);
       try {
-        // Update the dataset with cleaned data via API
-        const response = await fetch(`/api/datasets/${datasetId}/clean`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cleanedData }),
-        });
+        // Chunk size - keep small to stay under Vercel's 4.5MB limit
+        const CHUNK_SIZE = 1000;
+        const totalRows = cleanedData.length;
+        const totalChunks = Math.ceil(totalRows / CHUNK_SIZE);
 
-        const apiResult = await response.json();
+        // If data is small, send all at once
+        if (totalRows <= CHUNK_SIZE) {
+          const response = await fetch(`/api/datasets/${datasetId}/clean`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cleanedData }),
+          });
 
-        if (apiResult.success) {
-          // Show appropriate toast based on whether any changes were made
-          if (result.removedRows === 0 && result.modifiedCells === 0) {
-            toast.info(t('dataCleaner.noChangesNeeded') || 'No Changes Needed', {
-              description:
-                t('dataCleaner.noDataModified') ||
-                'Your data is already clean! No modifications were necessary.',
-            });
-          } else {
-            toast.success(t('dataCleaner.cleaningComplete') || 'Cleaning Complete!', {
-              description: `Removed ${result.removedRows} rows, modified ${result.modifiedCells} cells`,
-            });
+          const apiResult = await response.json();
+          if (!apiResult.success) {
+            throw new Error(apiResult.error);
           }
-          // Refresh the data
-          refreshData();
         } else {
-          throw new Error(apiResult.error);
+          // Send data in chunks for large datasets
+          // Show initial progress toast
+          toast.loading(`Cleaning data... (0/${totalChunks})`, { id: 'cleaning-progress' });
+
+          for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            const start = chunkIndex * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, totalRows);
+            const chunk = cleanedData.slice(start, end);
+
+            // Update progress state
+            setCleaningProgress({ current: chunkIndex + 1, total: totalChunks });
+
+            // Update progress toast
+            toast.loading(`Cleaning data... (${chunkIndex + 1}/${totalChunks})`, {
+              id: 'cleaning-progress',
+            });
+
+            const response = await fetch(`/api/datasets/${datasetId}/clean`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                cleanedData: chunk,
+                chunkIndex,
+                totalChunks,
+                totalRows,
+              }),
+            });
+
+            const apiResult = await response.json();
+            if (!apiResult.success) {
+              toast.dismiss('cleaning-progress');
+              throw new Error(apiResult.error || `Failed at chunk ${chunkIndex + 1}`);
+            }
+          }
+
+          // Dismiss progress toast
+          toast.dismiss('cleaning-progress');
+          setCleaningProgress(null);
         }
+
+        // Show appropriate toast based on whether any changes were made
+        if (result.removedRows === 0 && result.modifiedCells === 0) {
+          toast.info(t('dataCleaner.noChangesNeeded') || 'No Changes Needed', {
+            description:
+              t('dataCleaner.noDataModified') ||
+              'Your data is already clean! No modifications were necessary.',
+          });
+        } else {
+          toast.success(t('dataCleaner.cleaningComplete') || 'Cleaning Complete!', {
+            description: `Removed ${result.removedRows} rows, modified ${result.modifiedCells} cells`,
+          });
+        }
+        // Refresh the data
+        refreshData();
       } catch (error) {
         console.error('Error saving cleaned data:', error);
         toast.error('Failed to save cleaned data');
@@ -401,24 +511,69 @@ export default function DatasetDashboardPage() {
         </div>
       </details>
 
-      {/* Charts Section */}
-      <ChartContainer data={filteredData} columns={csvData.columns} />
-
-      {/* Data Table Section - Separate section below charts */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Data Table</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EditableTable
-            data={filteredData}
+      {/* Main Content Area */}
+      {filteredData.length === 0 && filters.filter(f => f.isActive).length > 0 ? (
+        /* Show ONE prominent empty state when filters result in no data */
+        <Card className="bg-linear-to-br from-violet-50/50 to-purple-50/50 dark:from-violet-950/20 dark:to-purple-950/20 border-violet-200/50 dark:border-violet-800/30">
+          <CardContent className="py-16">
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="w-24 h-24 rounded-full bg-linear-to-br from-violet-100 to-purple-100 dark:from-violet-900/40 dark:to-purple-900/40 flex items-center justify-center mb-6 shadow-lg shadow-violet-500/10">
+                <svg
+                  className="w-12 h-12 text-violet-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                {t('common.noRecordFound')}
+              </h2>
+              <p className="text-muted-foreground max-w-md mb-6">{t('common.noRecordFoundHint')}</p>
+              <Button
+                variant="outline"
+                onClick={() => setFilters([])}
+                className="gap-2 border-violet-500 text-violet-600 hover:bg-violet-100 hover:text-violet-700 transition-colors"
+              >
+                <FilterIcon className="h-4 w-4" />
+                {t('filter.clearFilters')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        /* Show Charts and Table when there's data */
+        <>
+          {/* Charts Section */}
+          <ChartContainer
+            data={deferredFilteredData}
             columns={csvData.columns}
-            datasetId={datasetId}
-            rowIds={filteredRowIds}
-            onDataChange={refreshData}
+            isLoading={isFiltering}
           />
-        </CardContent>
-      </Card>
+
+          {/* Data Table Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Data Table</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EditableTable
+                data={filteredData}
+                columns={csvData.columns}
+                datasetId={datasetId}
+                rowIds={filteredRowIds}
+                onDataChange={refreshData}
+              />
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* Data Cleaner Modal */}
       <DataCleanerModal

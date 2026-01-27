@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "src/app/api/datasets/route.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/datasets/chunk/route.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/rows/route.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/rows/[id]/route.ts": {
+      "maxDuration": 10
+    }
+  }
+}

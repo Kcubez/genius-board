@@ -13,6 +13,8 @@
     "success": "Success",
     "search": "Search",
     "noData": "No data available",
+    "noRecordFound": "No data records found",
+    "noRecordFoundHint": "Try adjusting your filters or clear all filters to see data",
     "showing": "Showing",
     "of": "of",
     "rows": "rows",
@@ -24,7 +26,7 @@
     "or": "or",
     "browse": "Browse Files",
     "supportedFormat": "Supported formats: CSV, Excel (.csv, .xlsx, .xls)",
-    "maxSize": "Maximum file size: 10MB",
+    "maxSize": "Maximum file size: 4MB",
     "preview": "Preview",
     "analyzing": "Analyzing file...",
     "ready": "File ready for analysis"

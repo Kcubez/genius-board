@@ -50,6 +50,7 @@ interface CustomTooltipProps {
     color?: string;
     payload?: {
       name?: string;
+      fullName?: string;
       fill?: string;
       percent?: number;
     };
@@ -71,7 +72,8 @@ const CustomTooltip = ({
   if (!active || !payload || !payload.length) return null;
 
   const value = payload[0]?.value as number;
-  const name = payload[0]?.payload?.name || label;
+  // Use fullName (with year) if available, otherwise use name or label
+  const name = payload[0]?.payload?.fullName || payload[0]?.payload?.name || label;
   const color = accentColor || payload[0]?.payload?.fill || payload[0]?.color || '#8b5cf6';
 
   return (
@@ -158,12 +160,83 @@ const PieTooltip = ({ active, payload, valueLabel, showCurrency }: CustomTooltip
 interface ChartContainerProps {
   data: Record<string, string | number | Date | null>[];
   columns: ColumnInfo[];
+  isLoading?: boolean;
 }
 
-export function ChartContainer({ data, columns }: ChartContainerProps) {
+// Skeleton component for loading state
+function ChartSkeleton({ height = 280 }: { height?: number }) {
+  return (
+    <div
+      className="animate-pulse bg-linear-to-r from-muted/50 via-muted to-muted/50 rounded-lg"
+      style={{ height }}
+    >
+      <div className="h-full flex flex-col items-center justify-center gap-3 p-6">
+        <div className="w-12 h-12 rounded-full bg-muted-foreground/10" />
+        <div className="space-y-2 w-full max-w-50">
+          <div className="h-2 bg-muted-foreground/10 rounded w-full" />
+          <div className="h-2 bg-muted-foreground/10 rounded w-3/4 mx-auto" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Bar chart skeleton with animated bars
+function BarChartSkeleton() {
+  return (
+    <div className="animate-pulse p-4 space-y-3" style={{ height: 280 }}>
+      {[0.9, 0.75, 0.6, 0.85, 0.5, 0.7].map((width, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <div className="w-20 h-3 bg-muted-foreground/10 rounded" />
+          <div
+            className="h-6 bg-linear-to-r from-violet-200/50 to-purple-200/50 rounded"
+            style={{ width: `${width * 100}%` }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Pie chart skeleton
+function PieChartSkeleton() {
+  return (
+    <div className="animate-pulse flex items-center justify-center p-6" style={{ height: 280 }}>
+      <div className="relative">
+        <div className="w-48 h-48 rounded-full bg-linear-to-br from-violet-200/30 via-purple-200/30 to-pink-200/30" />
+        <div className="absolute inset-8 rounded-full bg-background" />
+      </div>
+    </div>
+  );
+}
+
+// Line chart skeleton
+function LineChartSkeleton() {
+  return (
+    <div className="animate-pulse p-6" style={{ height: 280 }}>
+      <div className="h-full flex items-end gap-1">
+        {[40, 60, 45, 80, 55, 70, 90, 65, 85, 75, 95, 60].map((height, i) => (
+          <div
+            key={i}
+            className="flex-1 bg-linear-to-t from-violet-200/50 to-transparent rounded-t"
+            style={{ height: `${height}%` }}
+          />
+        ))}
+      </div>
+      <div className="flex justify-between mt-2">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="w-8 h-2 bg-muted-foreground/10 rounded" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ChartContainer({ data, columns, isLoading = false }: ChartContainerProps) {
   const { t } = useLanguage();
   const [groupByColumn, setGroupByColumn] = React.useState<string>('');
   const [valueColumn, setValueColumn] = React.useState<string>('');
+  const [timeSeriesValueColumn, setTimeSeriesValueColumn] = React.useState<string>('');
   const [reportType, setReportType] = React.useState<string>('custom');
 
   // Helper to detect if a column is likely a currency/money column
@@ -276,26 +349,196 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
     if (numberCol && !valueColumn) setValueColumn(numberCol.name);
   }, [columns, groupByColumn, valueColumn]);
 
+  // Get money-related columns for the time series dropdown
+  const moneyColumns = useMemo(() => {
+    const moneyHints = [
+      'amount',
+      'total',
+      'sales',
+      'revenue',
+      'price',
+      'value',
+      'cost',
+      'payment',
+      'fee',
+      'profit',
+      'discount',
+    ];
+
+    // Filter number columns that look like money columns
+    const filtered = numberColumns.filter(c => {
+      const lowerName = c.name.toLowerCase();
+      // Exclude ID columns
+      if (lowerName.includes('id') || lowerName.includes('index')) return false;
+      // Include if matches money hints
+      return moneyHints.some(hint => lowerName.includes(hint));
+    });
+
+    // If no money columns found, return all non-ID number columns
+    if (filtered.length === 0) {
+      return numberColumns.filter(
+        c => !c.name.toLowerCase().includes('id') && !c.name.toLowerCase().includes('index')
+      );
+    }
+
+    return filtered;
+  }, [numberColumns]);
+
+  // Auto-select first money column for time series if not set
+  React.useEffect(() => {
+    if (!timeSeriesValueColumn && moneyColumns.length > 0) {
+      setTimeSeriesValueColumn(moneyColumns[0].name);
+    }
+  }, [moneyColumns, timeSeriesValueColumn]);
+
   const chartData = useMemo(() => {
     if (!groupByColumn || !valueColumn || data.length === 0) return [];
     return aggregateByColumn(data, groupByColumn, valueColumn, 'sum').slice(0, 10);
   }, [data, groupByColumn, valueColumn]);
 
+  // Time series - aggregate by MONTH, show last 6 months
   const timeSeriesData = useMemo(() => {
-    if (!dateColumn || !valueColumn || data.length === 0) return [];
+    if (!dateColumn || !timeSeriesValueColumn || data.length === 0) return [];
 
-    return aggregateByColumn(data, dateColumn.name, valueColumn, 'sum')
-      .sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime())
-      .map(item => ({
-        ...item,
-        name: new Date(item.name).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      }));
-  }, [data, dateColumn, valueColumn]);
+    // Group by MONTH (YYYY-MM format)
+    const monthGroups = new Map<string, number>();
+
+    data.forEach(row => {
+      const dateValue = row[dateColumn.name];
+      if (!dateValue) return;
+
+      let monthKey: string;
+      const dateStr = String(dateValue);
+
+      // Try to extract YYYY-MM from various formats
+      const isoMatch = dateStr.match(/^(\d{4})-(\d{2})/);
+
+      if (isoMatch) {
+        monthKey = `${isoMatch[1]}-${isoMatch[2]}`; // "2025-07"
+      } else {
+        // Try other formats
+        const parsed = new Date(dateStr);
+        if (isNaN(parsed.getTime())) return;
+
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        monthKey = `${year}-${month}`;
+      }
+
+      const value = Number(row[timeSeriesValueColumn]) || 0;
+      monthGroups.set(monthKey, (monthGroups.get(monthKey) || 0) + value);
+    });
+
+    // Convert to array and sort by month
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    const sortedData = Array.from(monthGroups.entries())
+      .map(([monthStr, value]) => {
+        const [year, month] = monthStr.split('-').map(Number);
+        const monthName = monthNames[month - 1];
+        return {
+          monthStr,
+          name: `${monthName} ${year}`, // "Jul 2025"
+          fullName: `${monthName} ${year}`, // "Jul 2025"
+          value,
+        };
+      })
+      .sort((a, b) => a.monthStr.localeCompare(b.monthStr));
+
+    // Show last 12 months (1 year)
+    return sortedData.slice(-12);
+  }, [data, dateColumn, timeSeriesValueColumn]);
 
   const showCurrency = isCurrencyColumn(valueColumn);
+  const timeSeriesShowCurrency = isCurrencyColumn(timeSeriesValueColumn);
 
-  if (data.length === 0) {
-    return <div className="text-center text-muted-foreground py-12">{t('common.noData')}</div>;
+  // Show loading skeletons while data is being processed
+  if (isLoading || data.length === 0) {
+    if (data.length === 0 && !isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <div className="w-20 h-20 rounded-full bg-linear-to-br from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 flex items-center justify-center mb-4">
+            <svg
+              className="w-10 h-10 text-violet-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            {t('common.noRecordFound')}
+          </h3>
+          <p className="text-sm text-muted-foreground text-center max-w-sm">
+            {t('common.noRecordFoundHint')}
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4 lg:space-y-6">
+        {/* Skeleton for selectors */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-24 h-4 bg-muted animate-pulse rounded" />
+            <div className="w-48 h-10 bg-muted animate-pulse rounded-md" />
+          </div>
+        </div>
+
+        {/* Charts Grid Skeletons */}
+        <div className="grid gap-4 lg:gap-6 lg:grid-cols-2">
+          {/* Line Chart Skeleton */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="w-40 h-5 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <LineChartSkeleton />
+            </CardContent>
+          </Card>
+
+          {/* Bar Chart Skeleton */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="w-48 h-5 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <BarChartSkeleton />
+            </CardContent>
+          </Card>
+
+          {/* Pie Chart Skeleton */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="w-36 h-5 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <PieChartSkeleton />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -358,44 +601,8 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
         )}
       </div>
 
-      {/* Charts Grid - stacks on mobile */}
+      {/* Charts - Top Row: Bar + Pie side by side */}
       <div className="grid gap-4 lg:gap-6 lg:grid-cols-2">
-        {/* Line Chart - Sales over Time */}
-        {dateColumn && timeSeriesData.length > 0 && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{t('dashboard.charts.salesOverTime')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <RechartsLineChart data={timeSeriesData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
-                  <YAxis className="text-xs" tickFormatter={v => formatNumber(v, 'number')} />
-                  <Tooltip
-                    content={
-                      <CustomTooltip
-                        valueLabel={valueColumn}
-                        showCurrency={showCurrency}
-                        accentColor="#8b5cf6"
-                      />
-                    }
-                    cursor={{ stroke: '#8b5cf6', strokeWidth: 2, strokeOpacity: 0.3 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#8b5cf6"
-                    strokeWidth={2}
-                    dot={{ fill: '#8b5cf6', strokeWidth: 2 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </RechartsLineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Bar Chart */}
         <Card>
           <CardHeader className="pb-2">
@@ -465,6 +672,63 @@ export function ChartContainer({ data, columns }: ChartContainerProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bottom Row: Over Time Chart - Full Width */}
+      {dateColumn && timeSeriesData.length > 0 && (
+        <Card className="mt-4 lg:mt-6">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <CardTitle className="text-base">Over Time (Last 12 Months)</CardTitle>
+              <Select value={timeSeriesValueColumn} onValueChange={setTimeSeriesValueColumn}>
+                <SelectTrigger className="w-auto min-w-40 h-8 text-xs">
+                  <SelectValue placeholder="Select value" />
+                </SelectTrigger>
+                <SelectContent>
+                  {moneyColumns.map(col => (
+                    <SelectItem key={col.name} value={col.name} className="text-xs">
+                      {col.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <RechartsLineChart
+                data={timeSeriesData}
+                margin={{ left: 20, right: 20, top: 10, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="name" className="text-xs" />
+                <YAxis
+                  className="text-xs"
+                  width={100}
+                  tickFormatter={v => formatNumber(v, 'number')}
+                />
+                <Tooltip
+                  content={
+                    <CustomTooltip
+                      valueLabel={timeSeriesValueColumn}
+                      showCurrency={timeSeriesShowCurrency}
+                      accentColor="#8b5cf6"
+                    />
+                  }
+                  cursor={{ stroke: '#8b5cf6', strokeWidth: 2, strokeOpacity: 0.3 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  dot={{ fill: '#8b5cf6', strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
+                />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

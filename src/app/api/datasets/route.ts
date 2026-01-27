@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { verifyUserSession } from '@/lib/user-auth';
 
+// Route segment config - Vercel Hobby plan max is 10 seconds
+export const maxDuration = 10;
+export const dynamic = 'force-dynamic';
+
 type JsonValue = Prisma.InputJsonValue;
 
 // GET all datasets for current user
@@ -46,11 +50,39 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, fileName, columns, rows } = body;
+    const { name, fileName, columns, rows, chunkedUpload, totalRows } = body;
 
-    if (!name || !fileName || !columns || !rows) {
+    if (!name || !fileName || !columns) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // For chunked uploads, create the dataset first without rows
+    // Rows will be uploaded via /api/datasets/chunk
+    if (chunkedUpload) {
+      const dataset = await prisma.dataset.create({
+        data: {
+          userId: session.userId,
+          name,
+          fileName,
+          columns,
+          rowCount: totalRows || 0, // Will be updated when upload completes
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        dataset,
+        message: 'Dataset created, ready for chunked upload',
+      });
+    }
+
+    // For regular uploads (small datasets), include rows
+    if (!rows) {
+      return NextResponse.json(
+        { success: false, error: 'Missing rows for non-chunked upload' },
         { status: 400 }
       );
     }
