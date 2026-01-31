@@ -261,71 +261,40 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
   const dateColumn = columns.find(c => c.type === 'date');
 
   // Generate report type presets based on available columns
+  // Auto-generate ALL combinations of text/category columns × number columns
   const reportPresets = useMemo(() => {
     const presets: { value: string; label: string; groupBy: string; valueCol: string }[] = [
-      { value: 'custom', label: 'Custom Report', groupBy: '', valueCol: '' },
+      { value: 'custom', label: '⚙️ Custom Report', groupBy: '', valueCol: '' },
     ];
 
-    // Find common column patterns
-    const customerCol = textColumns.find(
-      c => c.name.toLowerCase().includes('customer') || c.name.toLowerCase().includes('client')
-    );
-    const productCol = textColumns.find(
-      c => c.name.toLowerCase().includes('product') || c.name.toLowerCase().includes('item')
-    );
-    const categoryCol = textColumns.find(
-      c => c.name.toLowerCase().includes('category') || c.name.toLowerCase().includes('type')
-    );
-    const amountCol = numberColumns.find(
-      c =>
-        c.name.toLowerCase().includes('amount') ||
-        c.name.toLowerCase().includes('total') ||
-        c.name.toLowerCase().includes('sales')
-    );
-    const quantityCol = numberColumns.find(
-      c => c.name.toLowerCase().includes('quantity') || c.name.toLowerCase().includes('qty')
-    );
+    // Filter out ID-like columns from number columns (not useful for reports)
+    const meaningfulNumberColumns = numberColumns.filter(c => {
+      const lowerName = c.name.toLowerCase();
+      return (
+        !lowerName.includes('id') && !lowerName.includes('index') && !lowerName.includes('_id')
+      );
+    });
 
-    if (customerCol && amountCol) {
-      presets.push({
-        value: 'sales-by-customer',
-        label: 'Sales by Customer',
-        groupBy: customerCol.name,
-        valueCol: amountCol.name,
+    // Generate all combinations of text columns × number columns
+    textColumns.forEach(textCol => {
+      meaningfulNumberColumns.forEach(numCol => {
+        const groupByName = textCol.name;
+        const valueName = numCol.name;
+
+        // Create a unique key for the preset
+        const presetKey = `${groupByName.toLowerCase().replace(/\s+/g, '-')}-by-${valueName.toLowerCase().replace(/\s+/g, '-')}`;
+
+        // Create a readable label
+        const label = `${valueName} by ${groupByName}`;
+
+        presets.push({
+          value: presetKey,
+          label,
+          groupBy: groupByName,
+          valueCol: valueName,
+        });
       });
-    }
-    if (customerCol && quantityCol) {
-      presets.push({
-        value: 'qty-by-customer',
-        label: 'Quantity by Customer',
-        groupBy: customerCol.name,
-        valueCol: quantityCol.name,
-      });
-    }
-    if (productCol && amountCol) {
-      presets.push({
-        value: 'sales-by-product',
-        label: 'Sales by Product',
-        groupBy: productCol.name,
-        valueCol: amountCol.name,
-      });
-    }
-    if (productCol && quantityCol) {
-      presets.push({
-        value: 'qty-by-product',
-        label: 'Quantity by Product',
-        groupBy: productCol.name,
-        valueCol: quantityCol.name,
-      });
-    }
-    if (categoryCol && amountCol) {
-      presets.push({
-        value: 'sales-by-category',
-        label: 'Sales by Category',
-        groupBy: categoryCol.name,
-        valueCol: amountCol.name,
-      });
-    }
+    });
 
     return presets;
   }, [textColumns, numberColumns]);
@@ -543,62 +512,76 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      {/* Report Type & Column Selectors */}
-      <div className="flex flex-col gap-3">
-        {/* Report Type Presets */}
-        {reportPresets.length > 1 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium whitespace-nowrap">📊 Report Type:</span>
-            <Select value={reportType} onValueChange={handleReportTypeChange}>
-              <SelectTrigger className="w-full sm:w-64 bg-linear-to-r from-violet-50 to-purple-50 border-violet-200">
-                <SelectValue placeholder="Select report type" />
-              </SelectTrigger>
-              <SelectContent>
-                {reportPresets.map(preset => (
-                  <SelectItem key={preset.value} value={preset.value}>
-                    {preset.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+      {/* Report Type & Column Selectors - Blue themed card */}
+      <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 bg-linear-to-r from-blue-50/50 to-cyan-50/30 dark:from-blue-950/20 dark:to-cyan-950/10">
+          <span className="font-medium flex items-center gap-2 text-blue-700 dark:text-blue-300">
+            <span className="text-base">📊</span>
+            Report Configuration
+          </span>
+        </div>
+        <div className="p-4 bg-white dark:bg-slate-900/30 space-y-3">
+          {/* Report Type Presets */}
+          {reportPresets.length > 1 && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                Report Type:
+              </span>
+              <Select value={reportType} onValueChange={handleReportTypeChange}>
+                <SelectTrigger className="w-full sm:w-64 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800">
+                  <SelectValue placeholder="Select report type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reportPresets.map(preset => (
+                    <SelectItem key={preset.value} value={preset.value}>
+                      {preset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-        {/* Custom Column Selectors - only show for Custom Report */}
-        {reportType === 'custom' && (
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="text-sm font-medium whitespace-nowrap">Group by:</span>
-              <Select value={groupByColumn} onValueChange={setGroupByColumn}>
-                <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
-                  <SelectValue placeholder="Select column" />
-                </SelectTrigger>
-                <SelectContent>
-                  {textColumns.map(col => (
-                    <SelectItem key={col.name} value={col.name}>
-                      {col.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Custom Column Selectors - only show for Custom Report */}
+          {reportType === 'custom' && (
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  Group by:
+                </span>
+                <Select value={groupByColumn} onValueChange={setGroupByColumn}>
+                  <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
+                    <SelectValue placeholder="Select column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {textColumns.map(col => (
+                      <SelectItem key={col.name} value={col.name}>
+                        {col.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  Value:
+                </span>
+                <Select value={valueColumn} onValueChange={setValueColumn}>
+                  <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
+                    <SelectValue placeholder="Select column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {numberColumns.map(col => (
+                      <SelectItem key={col.name} value={col.name}>
+                        {col.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="text-sm font-medium whitespace-nowrap">Value:</span>
-              <Select value={valueColumn} onValueChange={setValueColumn}>
-                <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
-                  <SelectValue placeholder="Select column" />
-                </SelectTrigger>
-                <SelectContent>
-                  {numberColumns.map(col => (
-                    <SelectItem key={col.name} value={col.name}>
-                      {col.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Charts - Top Row: Bar + Pie side by side */}

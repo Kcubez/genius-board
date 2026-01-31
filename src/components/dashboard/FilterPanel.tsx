@@ -1,13 +1,10 @@
 'use client';
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { Filter, X, Plus, Calendar, ChevronDown } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { X, Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -122,64 +119,73 @@ export function FilterPanel({
     setSelectedColumn(null);
   }, [selectedColumn, columns, onAddFilter, onSetPriorityColumn]);
 
+  // Get column type icon
+  const getColumnTypeIcon = (type: string) => {
+    switch (type) {
+      case 'number':
+        return '🔢';
+      case 'category':
+        return '📂';
+      case 'date':
+        return '📅';
+      default:
+        return '📝';
+    }
+  };
+
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            {t('filter.title')}
-          </CardTitle>
-          {activeFilters.length > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {activeFilters.length} {t('filter.activeFilters')}
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Add Filter */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">{t('filter.selectColumn')}</Label>
-          <div className="flex gap-2">
-            <Select value={selectedColumn ?? ''} onValueChange={setSelectedColumn}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder={t('filter.selectColumn')} />
-              </SelectTrigger>
-              <SelectContent>
-                {availableColumns.length === 0 ? (
-                  <div className="p-2 text-sm text-muted-foreground text-center">
-                    All columns have filters
+    <div className="space-y-3">
+      {/* Compact Inline Filter Selector */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Select value={selectedColumn ?? ''} onValueChange={setSelectedColumn}>
+          <SelectTrigger className="h-9 w-full sm:w-56 text-sm">
+            <SelectValue placeholder={t('filter.selectColumn')} />
+          </SelectTrigger>
+          <SelectContent>
+            {availableColumns.length === 0 ? (
+              <div className="p-2 text-xs text-muted-foreground text-center">
+                ✓ All columns filtered
+              </div>
+            ) : (
+              availableColumns.map(col => (
+                <SelectItem key={col.name} value={col.name}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">{getColumnTypeIcon(col.type)}</span>
+                    <span>{col.name}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">({col.type})</span>
                   </div>
-                ) : (
-                  availableColumns.map(col => (
-                    <SelectItem key={col.name} value={col.name}>
-                      <span className="flex items-center gap-2">
-                        {col.name}
-                        <Badge variant="outline" className="text-xs">
-                          {col.type}
-                        </Badge>
-                      </span>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            <Button
-              onClick={handleAddFilter}
-              disabled={!selectedColumn || availableColumns.length === 0}
-              className="gap-2 bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Plus className="h-4 w-4" />
-              Add Filter
-            </Button>
-          </div>
-        </div>
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
 
-        <Separator />
+        <Button
+          onClick={handleAddFilter}
+          disabled={!selectedColumn || availableColumns.length === 0}
+          size="sm"
+          className="h-9 gap-1.5 bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white disabled:opacity-50"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add Filter
+        </Button>
 
-        {/* Active Filters */}
-        <div className="space-y-3">
+        {activeFilters.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClearAll}
+            className="h-9 text-xs text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 ml-auto"
+          >
+            <X className="h-3 w-3 mr-1" />
+            {t('filter.clearFilters') || 'Clear All'}
+          </Button>
+        )}
+      </div>
+
+      {/* Active Filters - Compact Cards */}
+      {filters.length > 0 && (
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {filters.map(filter => (
             <FilterItem
               key={filter.id}
@@ -193,25 +199,8 @@ export function FilterPanel({
             />
           ))}
         </div>
-
-        {filters.length > 0 && (
-          <Button
-            variant="outline"
-            onClick={onClearAll}
-            className="w-full text-destructive hover:text-destructive"
-          >
-            <X className="h-4 w-4 mr-2" />
-            {t('filter.clearFilters')}
-          </Button>
-        )}
-
-        {filters.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Select a column above to add a filter
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
 
@@ -234,34 +223,47 @@ function FilterItem({
   onSetPriority,
   t,
 }: FilterItemProps) {
+  // Get column type icon
+  const getTypeIcon = () => {
+    switch (column.type) {
+      case 'number':
+        return '🔢';
+      case 'category':
+        return '📂';
+      case 'date':
+        return '📅';
+      default:
+        return '📝';
+    }
+  };
+
   return (
-    <div
-      className={cn(
-        'p-3 rounded-lg border transition-all',
-        isPriority && 'border-primary bg-primary/5',
-        !filter.isActive && 'opacity-60'
-      )}
-    >
+    <div className={cn('p-2.5', !filter.isActive && 'opacity-60')}>
+      {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <button
           onClick={onSetPriority}
           className={cn(
-            'font-medium text-sm hover:text-primary transition-colors',
-            isPriority && 'text-primary'
+            'flex items-center gap-1.5 text-xs font-medium transition-colors',
+            isPriority
+              ? 'text-violet-700 dark:text-violet-400'
+              : 'text-slate-700 dark:text-slate-300 hover:text-violet-600'
           )}
         >
-          {filter.columnName}
+          <span>{getTypeIcon()}</span>
+          <span className="truncate max-w-24">{filter.columnName}</span>
         </button>
-        <div className="flex items-center gap-1">
-          <Badge variant={filter.isActive ? 'default' : 'secondary'} className="text-xs">
-            {column.type}
-          </Badge>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onRemove}>
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-5 w-5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+          onClick={onRemove}
+        >
+          <X className="h-3 w-3" />
+        </Button>
       </div>
 
+      {/* Filter Controls - Compact */}
       {filter.columnType === 'text' && (
         <TextFilterInput filter={filter as TextFilter} onUpdate={onUpdate} t={t} />
       )}
@@ -301,12 +303,12 @@ function TextFilterInput({
   t: (k: string) => string;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <Select
         value={filter.operator}
         onValueChange={v => onUpdate({ operator: v as TextFilter['operator'] })}
       >
-        <SelectTrigger className="h-8">
+        <SelectTrigger className="h-7 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -318,7 +320,7 @@ function TextFilterInput({
         value={filter.value}
         onChange={e => onUpdate({ value: e.target.value })}
         placeholder="Enter value..."
-        className="h-8"
+        className="h-7 text-xs"
       />
     </div>
   );
@@ -336,12 +338,12 @@ function NumberFilterInput({
   t: (k: string) => string;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <Select
         value={filter.operator}
         onValueChange={v => onUpdate({ operator: v as NumberFilter['operator'] })}
       >
-        <SelectTrigger className="h-8">
+        <SelectTrigger className="h-7 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -352,20 +354,20 @@ function NumberFilterInput({
         </SelectContent>
       </Select>
       {filter.operator === 'between' ? (
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <Input
             type="number"
             value={filter.value}
             onChange={e => onUpdate({ value: Number(e.target.value) })}
             placeholder={t('filter.min')}
-            className="h-8"
+            className="h-7 text-xs"
           />
           <Input
             type="number"
             value={filter.valueTo ?? column.max ?? 0}
             onChange={e => onUpdate({ valueTo: Number(e.target.value) })}
             placeholder={t('filter.max')}
-            className="h-8"
+            className="h-7 text-xs"
           />
         </div>
       ) : (
@@ -373,7 +375,7 @@ function NumberFilterInput({
           type="number"
           value={filter.value}
           onChange={e => onUpdate({ value: Number(e.target.value) })}
-          className="h-8"
+          className="h-7 text-xs"
         />
       )}
     </div>
@@ -407,16 +409,19 @@ function CategoryFilterInput({
   };
 
   return (
-    <div className="space-y-2">
-      <Button variant="outline" size="sm" onClick={toggleAll} className="w-full h-7 text-xs">
+    <div className="space-y-1.5">
+      <Button variant="outline" size="sm" onClick={toggleAll} className="w-full h-6 text-xs">
         {allSelected ? t('common.clear') : t('filter.selectAll')}
       </Button>
-      <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+      <div className="flex flex-wrap gap-1">
         {column.uniqueValues?.map(value => (
           <Badge
             key={value}
             variant={filter.values.includes(value) ? 'default' : 'outline'}
-            className="cursor-pointer text-xs"
+            className={cn(
+              'cursor-pointer text-[10px] px-1.5 py-0',
+              filter.values.includes(value) && 'bg-violet-600 hover:bg-violet-700'
+            )}
             onClick={() => toggleValue(value)}
           >
             {value}
@@ -437,12 +442,12 @@ function DateFilterInput({
   t: (k: string) => string;
 }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1">
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="flex-1 h-8 justify-start text-xs">
+          <Button variant="outline" size="sm" className="flex-1 h-7 justify-start text-[10px] px-2">
             <Calendar className="h-3 w-3 mr-1" />
-            {filter.from ? format(filter.from, 'MMM d, yyyy') : t('filter.from')}
+            {filter.from ? format(filter.from, 'MMM d') : t('filter.from')}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -455,9 +460,9 @@ function DateFilterInput({
       </Popover>
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="flex-1 h-8 justify-start text-xs">
+          <Button variant="outline" size="sm" className="flex-1 h-7 justify-start text-[10px] px-2">
             <Calendar className="h-3 w-3 mr-1" />
-            {filter.to ? format(filter.to, 'MMM d, yyyy') : t('filter.to')}
+            {filter.to ? format(filter.to, 'MMM d') : t('filter.to')}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">

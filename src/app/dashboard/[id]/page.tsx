@@ -479,21 +479,24 @@ export default function DatasetDashboardPage() {
       {/* KPI Cards */}
       {kpiData && <KpiCards kpiData={kpiData} />}
 
-      {/* Filter Panel - collapsible */}
-      <details className="group" open>
-        <summary className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer list-none hover:bg-muted/70 transition-colors">
-          <span className="font-medium flex items-center gap-2">
+      {/* Filter Panel - collapsible with violet accent */}
+      <details
+        className="group border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden"
+        open
+      >
+        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer list-none bg-linear-to-r from-violet-50/50 to-purple-50/30 dark:from-violet-950/20 dark:to-purple-950/10 hover:from-violet-50 hover:to-purple-50/50 dark:hover:from-violet-950/30 dark:hover:to-purple-950/20 transition-colors">
+          <span className="font-medium flex items-center gap-2 text-violet-700 dark:text-violet-300">
             <FilterIcon className="h-4 w-4" />
             {t('filter.title')}
             {filters.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge className="text-xs bg-violet-600 text-white">
                 {filters.filter(f => f.isActive).length} active
               </Badge>
             )}
           </span>
-          <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+          <ChevronDown className="h-4 w-4 text-violet-500 transition-transform group-open:rotate-180" />
         </summary>
-        <div className="pt-3">
+        <div className="p-4 bg-white dark:bg-slate-900/30">
           <FilterPanel
             columns={csvData.columns}
             filters={filters}

@@ -77,7 +77,7 @@ export function Header() {
                 onClick={() => setLanguage('en')}
                 className="flex items-center gap-2 rounded-xl px-3 py-2"
               >
-                <span className="flex items-center gap-2 translate-x-[-8px]">
+                <span className="flex items-center gap-2 translate-x-2">
                   <Image
                     src={ukFlag}
                     alt="English"
@@ -95,7 +95,7 @@ export function Header() {
                 onClick={() => setLanguage('mm')}
                 className="flex items-center gap-2 rounded-xl px-3 py-2"
               >
-                <span className="flex items-center gap-2 translate-x-[-8px]">
+                <span className="flex items-center gap-2 translate-x-2">
                   <Image
                     src={myanmarFlag}
                     alt="Myanmar"
