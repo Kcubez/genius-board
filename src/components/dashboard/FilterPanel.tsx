@@ -136,46 +136,51 @@ export function FilterPanel({
   return (
     <div className="space-y-3">
       {/* Compact Inline Filter Selector */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Select value={selectedColumn ?? ''} onValueChange={setSelectedColumn}>
-          <SelectTrigger className="h-9 w-full sm:w-56 text-sm">
-            <SelectValue placeholder={t('filter.selectColumn')} />
-          </SelectTrigger>
-          <SelectContent>
-            {availableColumns.length === 0 ? (
-              <div className="p-2 text-xs text-muted-foreground text-center">
-                ✓ All columns filtered
-              </div>
-            ) : (
-              availableColumns.map(col => (
-                <SelectItem key={col.name} value={col.name}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">{getColumnTypeIcon(col.type)}</span>
-                    <span>{col.name}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">({col.type})</span>
-                  </div>
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <div className="flex gap-2 flex-1">
+          <Select value={selectedColumn ?? ''} onValueChange={setSelectedColumn}>
+            <SelectTrigger className="h-9 flex-1 sm:w-56 sm:flex-none text-sm">
+              <SelectValue placeholder={t('filter.selectColumn')} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableColumns.length === 0 ? (
+                <div className="p-2 text-xs text-muted-foreground text-center">
+                  ✓ All columns filtered
+                </div>
+              ) : (
+                availableColumns.map(col => (
+                  <SelectItem key={col.name} value={col.name}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{getColumnTypeIcon(col.type)}</span>
+                      <span className="truncate">{col.name}</span>
+                      <span className="text-xs text-muted-foreground ml-auto hidden sm:inline">
+                        ({col.type})
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
 
-        <Button
-          onClick={handleAddFilter}
-          disabled={!selectedColumn || availableColumns.length === 0}
-          size="sm"
-          className="h-9 gap-1.5 bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white disabled:opacity-50"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Add Filter
-        </Button>
+          <Button
+            onClick={handleAddFilter}
+            disabled={!selectedColumn || availableColumns.length === 0}
+            size="sm"
+            className="h-9 gap-1 sm:gap-1.5 px-3 sm:px-4 bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white disabled:opacity-50"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Add Filter</span>
+            <span className="sm:hidden">Add</span>
+          </Button>
+        </div>
 
         {activeFilters.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onClearAll}
-            className="h-9 text-xs text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 ml-auto"
+            className="h-9 text-xs text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 self-end sm:self-auto"
           >
             <X className="h-3 w-3 mr-1" />
             {t('filter.clearFilters') || 'Clear All'}
@@ -183,9 +188,9 @@ export function FilterPanel({
         )}
       </div>
 
-      {/* Active Filters - Compact Cards */}
+      {/* Active Filters - Single column on mobile, grid on larger screens */}
       {filters.length > 0 && (
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filters.map(filter => (
             <FilterItem
               key={filter.id}

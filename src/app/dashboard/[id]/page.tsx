@@ -433,9 +433,11 @@ export default function DatasetDashboardPage() {
     <div className="space-y-4 md:space-y-6">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold">{dataset.name}</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate" title={dataset.name}>
+            {dataset.name}
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">
             {csvData.fileName} • {filteredData.length} {t('common.of')} {csvData.totalRows}{' '}
             {t('common.rows')}
           </p>

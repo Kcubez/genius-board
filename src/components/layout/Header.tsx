@@ -33,26 +33,29 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="container flex h-14 items-center justify-between">
+      <div className="container flex h-14 items-center justify-between gap-2">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg">
-          <div className="h-8 w-8 rounded-lg bg-linear-to-r from-violet-500 to-purple-600 flex items-center justify-center">
-            <LayoutDashboard className="h-5 w-5 text-white" />
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-lg shrink-0"
+        >
+          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-linear-to-r from-violet-500 to-purple-600 flex items-center justify-center">
+            <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
           </div>
-          <span className="bg-linear-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent hidden min-[360px]:inline">
             Genius Board
           </span>
         </Link>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Language Toggle */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-10 w-24 justify-between gap-2 rounded-2xl border-slate-200/70 bg-white/90 px-3 shadow-sm transition hover:bg-white hover:shadow-md sm:gap-3"
+                className="h-9 sm:h-10 w-20 sm:w-24 justify-between gap-1 sm:gap-2 rounded-2xl border-slate-200/70 bg-white/90 px-2 sm:px-3 shadow-sm transition hover:bg-white hover:shadow-md"
               >
                 <span className="flex items-center gap-2">
                   <Image

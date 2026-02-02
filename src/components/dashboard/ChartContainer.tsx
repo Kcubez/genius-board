@@ -514,23 +514,23 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
     <div className="space-y-4 lg:space-y-6">
       {/* Report Type & Column Selectors - Blue themed card */}
       <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 bg-linear-to-r from-blue-50/50 to-cyan-50/30 dark:from-blue-950/20 dark:to-cyan-950/10">
-          <span className="font-medium flex items-center gap-2 text-blue-700 dark:text-blue-300">
-            <span className="text-base">📊</span>
+        <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-linear-to-r from-blue-50/50 to-cyan-50/30 dark:from-blue-950/20 dark:to-cyan-950/10">
+          <span className="font-medium flex items-center gap-2 text-blue-700 dark:text-blue-300 text-sm sm:text-base">
+            <span className="text-sm sm:text-base">📊</span>
             Report Configuration
           </span>
         </div>
-        <div className="p-4 bg-white dark:bg-slate-900/30">
-          {/* All selectors in one row on desktop */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:flex-wrap gap-3 lg:gap-4">
+        <div className="p-3 sm:p-4 bg-white dark:bg-slate-900/30">
+          {/* Stacked on mobile, row on desktop */}
+          <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:flex-wrap">
             {/* Report Type Presets */}
             {reportPresets.length > 1 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400">
                   Report Type:
                 </span>
                 <Select value={reportType} onValueChange={handleReportTypeChange}>
-                  <SelectTrigger className="w-full sm:w-56 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800">
+                  <SelectTrigger className="w-full sm:w-56 h-9 sm:h-10 text-sm bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800">
                     <SelectValue placeholder="Select report type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -548,39 +548,43 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
             {reportType === 'custom' && (
               <>
                 <div className="hidden lg:block w-px h-8 bg-slate-200 dark:bg-slate-700" />
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                    Group by:
-                  </span>
-                  <Select value={groupByColumn} onValueChange={setGroupByColumn}>
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder="Select column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {textColumns.map(col => (
-                        <SelectItem key={col.name} value={col.name}>
-                          {col.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                    Value:
-                  </span>
-                  <Select value={valueColumn} onValueChange={setValueColumn}>
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder="Select column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {numberColumns.map(col => (
-                        <SelectItem key={col.name} value={col.name}>
-                          {col.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+                {/* Group by and Value in a row on mobile */}
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                      Group by:
+                    </span>
+                    <Select value={groupByColumn} onValueChange={setGroupByColumn}>
+                      <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10 text-sm">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {textColumns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>
+                            {col.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                      Value:
+                    </span>
+                    <Select value={valueColumn} onValueChange={setValueColumn}>
+                      <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10 text-sm">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {numberColumns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>
+                            {col.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </>
             )}
