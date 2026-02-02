@@ -147,3 +147,99 @@
     padding-right: 2rem;
   }
 }
+
+/* Custom Scrollbar Styles for Select Dropdown */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #e2e8f0;
+  overflow-y: scroll !important;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  display: block !important;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+  margin: 4px 0;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #94a3b8;
+  border-radius: 9999px;
+  border: 2px solid #f1f5f9;
+  min-height: 30px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
+
+.scrollbar-thin::-webkit-scrollbar-button {
+  display: none;
+}
+
+.dark .scrollbar-thin {
+  scrollbar-color: #475569 #1e293b;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #475569;
+  border: 2px solid #1e293b;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
+
+/* Force scrollbar on Radix UI Select viewport */
+[data-radix-select-viewport] {
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #e2e8f0;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar {
+  width: 8px;
+  display: block !important;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar-thumb {
+  background-color: #94a3b8;
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
+
+.dark [data-radix-select-viewport] {
+  scrollbar-color: #475569 #1e293b;
+}
+
+.dark [data-radix-select-viewport]::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark [data-radix-select-viewport]::-webkit-scrollbar-thumb {
+  background-color: #475569;
+  border: 2px solid #1e293b;
+}
+
+.dark [data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
