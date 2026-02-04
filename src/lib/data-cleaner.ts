@@ -18,6 +18,41 @@ import {
 type DataRow = Record<string, string | number | Date | null>;
 
 /**
+ * Common string representations of missing values
+ * These are treated as missing/null values during cleaning
+ */
+const MISSING_VALUE_PLACEHOLDERS = new Set([
+  'null',
+  'n/a',
+  'na',
+  'nan',
+  'none',
+  '-',
+  '.',
+  'undefined',
+  'missing',
+  '#n/a',
+  '#na',
+  '(blank)',
+  'blank',
+  '(empty)',
+  'empty',
+]);
+
+/**
+ * Check if a value represents a missing/null value
+ */
+function isMissingValue(value: string | number | Date | null | undefined): boolean {
+  if (value === null || value === undefined) return true;
+  if (value === '') return true;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    return normalized === '' || MISSING_VALUE_PLACEHOLDERS.has(normalized);
+  }
+  return false;
+}
+
+/**
  * Analyze data for cleaning issues
  */
 export function analyzeDataForCleaning(rows: DataRow[], columns: ColumnInfo[]): CleaningSummary {
@@ -65,8 +100,8 @@ export function analyzeDataForCleaning(rows: DataRow[], columns: ColumnInfo[]): 
     rows.forEach((row, index) => {
       const value = row[columnName];
 
-      // Check for missing values
-      if (value === null || value === undefined || value === '') {
+      // Check for missing values (including placeholder strings like "null", "N/A", etc.)
+      if (isMissingValue(value)) {
         missingRows.push(index);
       }
 
@@ -196,7 +231,7 @@ export function generateCleaningPreview(
     rows.forEach((row, index) => {
       const allEmpty = columns.every(col => {
         const value = row[col.name];
-        return value === null || value === undefined || value === '';
+        return isMissingValue(value);
       });
       if (allEmpty) {
         affectedRows.add(index);
@@ -368,7 +403,7 @@ export function cleanData(
     cleanedRows = cleanedRows.filter((row, index) => {
       const allEmpty = columns.every(col => {
         const value = row[col.name];
-        return value === null || value === undefined || value === '';
+        return isMissingValue(value);
       });
       if (allEmpty) {
         changes.push({
@@ -388,7 +423,7 @@ export function cleanData(
       cleanedRows = cleanedRows.filter((row, index) => {
         const hasMissing = columnsToProcess.some(col => {
           const value = row[col.name];
-          return value === null || value === undefined || value === '';
+          return isMissingValue(value);
         });
         if (hasMissing) {
           changes.push({
@@ -413,7 +448,7 @@ export function cleanData(
 
         cleanedRows.forEach((row, index) => {
           const value = row[col.name];
-          if (value === null || value === undefined || value === '') {
+          if (isMissingValue(value)) {
             const oldValue = value;
             row[col.name] = fillValue;
             modifiedCells++;

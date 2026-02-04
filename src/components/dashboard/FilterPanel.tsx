@@ -399,6 +399,8 @@ function CategoryFilterInput({
   t: (k: string) => string;
 }) {
   const allSelected = filter.values.length === (column.uniqueValues?.length ?? 0);
+  const selectedCount = filter.values.length;
+  const totalCount = column.uniqueValues?.length ?? 0;
 
   const toggleValue = (value: string) => {
     const newValues = filter.values.includes(value)
@@ -415,23 +417,41 @@ function CategoryFilterInput({
 
   return (
     <div className="space-y-1.5">
-      <Button variant="outline" size="sm" onClick={toggleAll} className="w-full h-6 text-xs">
-        {allSelected ? t('common.clear') : t('filter.selectAll')}
-      </Button>
-      <div className="flex flex-wrap gap-1">
-        {column.uniqueValues?.map(value => (
-          <Badge
-            key={value}
-            variant={filter.values.includes(value) ? 'default' : 'outline'}
-            className={cn(
-              'cursor-pointer text-[10px] px-1.5 py-0',
-              filter.values.includes(value) && 'bg-violet-600 hover:bg-violet-700'
-            )}
-            onClick={() => toggleValue(value)}
-          >
-            {value}
-          </Badge>
-        ))}
+      {/* Header with toggle and count */}
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={toggleAll} className="flex-1 h-6 text-xs">
+          {allSelected ? t('common.clear') : t('filter.selectAll')}
+        </Button>
+        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+          {selectedCount}/{totalCount}
+        </span>
+      </div>
+
+      {/* Scrollable box container */}
+      <div
+        className="border rounded-md bg-muted/30 p-2 max-h-32 overflow-y-auto"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgb(148 163 184) transparent',
+        }}
+      >
+        <div className="flex flex-wrap gap-1">
+          {column.uniqueValues?.map(value => (
+            <Badge
+              key={value}
+              variant={filter.values.includes(value) ? 'default' : 'outline'}
+              className={cn(
+                'cursor-pointer text-[10px] px-1.5 py-0.5 transition-colors',
+                filter.values.includes(value)
+                  ? 'bg-violet-600 hover:bg-violet-700 text-white'
+                  : 'hover:bg-violet-100 dark:hover:bg-violet-900/30'
+              )}
+              onClick={() => toggleValue(value)}
+            >
+              {value}
+            </Badge>
+          ))}
+        </div>
       </div>
     </div>
   );
