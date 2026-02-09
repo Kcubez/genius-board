@@ -82,3 +82,20 @@ model DataRow {
   @@index([datasetId, rowIndex])
 }
 
+// NEW: Feedback - user feedback and feature requests
+model Feedback {
+  id          String    @id @default(cuid())
+  userId      String?   // User ID (null for anonymous)
+  userEmail   String?   // User email (for convenience)
+  type        String    @default("general") // feature_inquiry, feature_request, bug_report, general
+  message     String    // User's message
+  response    String?   // Admin's response
+  status      String    @default("pending") // pending, reviewed, resolved
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([status])
+  @@index([type])
+  @@index([userId])
+  @@index([createdAt])
+}

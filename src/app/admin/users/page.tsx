@@ -17,6 +17,7 @@ import {
   Eye,
   EyeOff,
   Calendar,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -361,6 +362,14 @@ export default function AdminUsersPage() {
           >
             <Plus className="h-4 w-4" />
             Create User
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/admin/feedback')}
+            className="gap-2 bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Feedback
           </Button>
           <Button
             variant="outline"

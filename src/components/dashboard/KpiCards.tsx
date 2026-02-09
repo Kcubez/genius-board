@@ -31,6 +31,7 @@ interface KpiCardConfig {
   gradient: string;
   iconBg: string;
   suffix?: string;
+  priority?: 'primary' | 'secondary'; // Primary cards are larger and span 2 columns
 }
 
 export function KpiCards({ kpiData, isLoading = false }: KpiCardsProps) {
@@ -48,6 +49,7 @@ export function KpiCards({ kpiData, isLoading = false }: KpiCardsProps) {
         format: 'currency',
         gradient: 'from-emerald-500 to-teal-600',
         iconBg: 'bg-emerald-500/20 text-emerald-600',
+        priority: 'primary',
       },
       {
         key: 'totalOrders',
@@ -56,6 +58,7 @@ export function KpiCards({ kpiData, isLoading = false }: KpiCardsProps) {
         format: 'number',
         gradient: 'from-blue-500 to-indigo-600',
         iconBg: 'bg-blue-500/20 text-blue-600',
+        priority: 'primary',
       },
       {
         key: 'totalQuantity',
@@ -101,6 +104,7 @@ export function KpiCards({ kpiData, isLoading = false }: KpiCardsProps) {
         format: 'currency',
         gradient: isProfitable ? 'from-green-500 to-emerald-600' : 'from-red-500 to-rose-600',
         iconBg: isProfitable ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-600',
+        priority: 'primary',
       },
       {
         key: 'profitMargin',
@@ -129,55 +133,98 @@ export function KpiCards({ kpiData, isLoading = false }: KpiCardsProps) {
     return kpiData[config.key] > 0;
   });
 
-  // Calculate grid columns based on visible KPIs count - max 4 per row for readability
-  const getGridCols = (count: number) => {
-    if (count <= 2) return 'grid-cols-1 sm:grid-cols-2';
-    if (count === 3) return 'grid-cols-1 sm:grid-cols-3';
-    if (count === 4) return 'grid-cols-2 lg:grid-cols-4';
-    // For 5+ cards, use 2 rows: 4 on top, rest below
-    return 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
-  };
-
   return (
-    <div className={cn('grid gap-3 md:gap-4', getGridCols(visibleKpis.length))}>
-      {visibleKpis.map(config => (
-        <Card
-          key={config.key}
-          className={cn(
-            'relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
-            'border-0 bg-linear-to-r min-h-30',
-            config.gradient
-          )}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3 px-4">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/90 leading-tight">
-              {t(config.titleKey)}
-            </CardTitle>
-            <div className={cn('p-1.5 sm:p-2 rounded-full shrink-0', 'bg-white/20 text-white')}>
-              {config.icon}
-            </div>
-          </CardHeader>
-          <CardContent className="pt-1 pb-4 px-4">
-            {isLoading ? (
-              <div className="h-8 w-24 bg-white/30 rounded animate-pulse" />
-            ) : (
-              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate">
-                {config.key === 'totalProfit' && kpiData.totalProfit < 0 && '-'}
-                {formatNumber(
-                  Math.abs(kpiData[config.key]),
-                  config.format === 'percent' ? 'decimal' : config.format
-                )}
-                {config.format === 'currency' && (
-                  <span className="text-sm sm:text-base font-semibold ml-1">Ks</span>
-                )}
-                {config.suffix}
-              </div>
+    <div className="grid gap-3 md:gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+      {visibleKpis.map(config => {
+        const isPrimary = config.priority === 'primary';
+        return (
+          <Card
+            key={config.key}
+            className={cn(
+              'relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
+              'border-0 bg-linear-to-r',
+              config.gradient,
+              // Primary cards span 2 columns and are taller
+              isPrimary ? 'col-span-2 min-h-36 md:min-h-40' : 'col-span-1 min-h-28'
             )}
-          </CardContent>
-          {/* Decorative element */}
-          <div className="absolute -right-4 -bottom-4 h-20 w-20 rounded-full bg-white/10" />
-        </Card>
-      ))}
+          >
+            <CardHeader
+              className={cn(
+                'flex flex-row items-center justify-between px-4',
+                isPrimary ? 'pb-2 pt-4' : 'pb-1 pt-3'
+              )}
+            >
+              <CardTitle
+                className={cn(
+                  'font-medium text-white/90 leading-tight',
+                  isPrimary ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-sm'
+                )}
+              >
+                {t(config.titleKey)}
+              </CardTitle>
+              <div
+                className={cn(
+                  'rounded-full shrink-0 bg-white/20 text-white',
+                  isPrimary ? 'p-2 sm:p-3' : 'p-1.5 sm:p-2'
+                )}
+              >
+                {isPrimary ? (
+                  <div className="[&>svg]:h-6 [&>svg]:w-6 sm:[&>svg]:h-7 sm:[&>svg]:w-7">
+                    {config.icon}
+                  </div>
+                ) : (
+                  config.icon
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className={cn('px-4', isPrimary ? 'pt-2 pb-5' : 'pt-1 pb-4')}>
+              {isLoading ? (
+                <div
+                  className={cn(
+                    'bg-white/30 rounded animate-pulse',
+                    isPrimary ? 'h-10 w-32' : 'h-8 w-24'
+                  )}
+                />
+              ) : (
+                <div
+                  className={cn(
+                    'font-bold text-white truncate',
+                    isPrimary
+                      ? 'text-2xl sm:text-3xl md:text-4xl'
+                      : 'text-lg sm:text-xl lg:text-2xl'
+                  )}
+                >
+                  {config.key === 'totalProfit' && kpiData.totalProfit < 0 && '-'}
+                  {formatNumber(
+                    Math.abs(kpiData[config.key]),
+                    config.format === 'percent' ? 'decimal' : config.format
+                  )}
+                  {config.format === 'currency' && (
+                    <span
+                      className={cn(
+                        'font-semibold ml-1',
+                        isPrimary ? 'text-base sm:text-lg md:text-xl' : 'text-sm sm:text-base'
+                      )}
+                    >
+                      Ks
+                    </span>
+                  )}
+                  {config.suffix}
+                </div>
+              )}
+            </CardContent>
+            {/* Decorative element */}
+            <div
+              className={cn(
+                'absolute rounded-full bg-white/10',
+                isPrimary
+                  ? '-right-6 -bottom-6 h-28 w-28 md:h-32 md:w-32'
+                  : '-right-4 -bottom-4 h-20 w-20'
+              )}
+            />
+          </Card>
+        );
+      })}
     </div>
   );
 }
