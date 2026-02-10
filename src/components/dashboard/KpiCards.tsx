@@ -268,51 +268,55 @@ export function KpiCards({ kpiData }: KpiCardsProps) {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-      {cards.map((card, index) => {
-        const Icon = card.icon;
+      {cards
+        .filter(card => card.value > 0)
+        .map((card, index) => {
+          const Icon = card.icon;
 
-        return (
-          <div
-            key={index}
-            className={`
-              group relative overflow-hidden rounded-2xl p-4 sm:p-5
-              bg-linear-to-br ${card.gradient}
-              shadow-lg ${card.glowColor}
-              hover:shadow-xl hover:-translate-y-1
-              transition-all duration-300 ease-out
-              cursor-default
-            `}
-            style={{
-              animationDelay: `${index * 80}ms`,
-            }}
-          >
-            {/* Decorative Pattern */}
-            <CardPattern type={card.pattern} />
+          return (
+            <div
+              key={index}
+              className={`
+                group relative overflow-hidden rounded-2xl p-4 sm:p-5
+                bg-linear-to-br ${card.gradient}
+                shadow-lg ${card.glowColor}
+                hover:shadow-xl hover:-translate-y-1
+                transition-all duration-300 ease-out
+                cursor-default
+              `}
+              style={{
+                animationDelay: `${index * 80}ms`,
+              }}
+            >
+              {/* Decorative Pattern */}
+              <CardPattern type={card.pattern} />
 
-            {/* Frosted Glass Icon */}
-            <div className="relative z-10 mb-6 sm:mb-8">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20 group-hover:bg-white/25 group-hover:scale-110 transition-all duration-300">
-                <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white/90" strokeWidth={1.8} />
+              {/* Frosted Glass Icon */}
+              <div className="relative z-10 mb-6 sm:mb-8">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20 group-hover:bg-white/25 group-hover:scale-110 transition-all duration-300">
+                  <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white/90" strokeWidth={1.8} />
+                </div>
               </div>
-            </div>
 
-            {/* Value */}
-            <div className="relative z-10">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-none mb-1">
-                {card.formatType === 'currency' && '$'}
-                {formatNumber(card.value, card.formatType)}
-                {card.formatType === 'decimal' && '%'}
-              </h3>
-              <p className="text-[11px] sm:text-xs font-medium text-white/70 uppercase tracking-wider">
-                {t(card.labelKey)}
-              </p>
-            </div>
+              {/* Value */}
+              <div className="relative z-10">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-none mb-1">
+                  {formatNumber(card.value, card.formatType)}
+                  {card.formatType === 'currency' && (
+                    <span className="ml-1 text-sm font-medium">MMK</span>
+                  )}
+                  {card.formatType === 'decimal' && '%'}
+                </h3>
+                <p className="text-[11px] sm:text-xs font-medium text-white/70 uppercase tracking-wider">
+                  {t(card.labelKey)}
+                </p>
+              </div>
 
-            {/* Hover glow effect */}
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-white/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          </div>
-        );
-      })}
+              {/* Hover glow effect */}
+              <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-white/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            </div>
+          );
+        })}
     </div>
   );
 }
