@@ -24,7 +24,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { KpiCards } from '@/components/dashboard/KpiCards';
+
 import { FilterPanel } from '@/components/dashboard/FilterPanel';
 import { ChartContainer } from '@/components/dashboard/ChartContainer';
 import { EditableTable } from '@/components/csv/EditableTable';
@@ -36,6 +36,7 @@ import { calculateKpis, detectKpiColumns } from '@/lib/kpi-calculator';
 import { convertToCsv, downloadCsv } from '@/lib/csv-parser';
 import { CleaningResult } from '@/types/data-cleaner';
 import { toast } from 'sonner';
+import { KpiCards } from '@/components/dashboard';
 
 interface DataRow {
   id: string;

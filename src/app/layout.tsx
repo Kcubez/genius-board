@@ -42,6 +42,11 @@ export default function RootLayout({
           </LanguageProvider>
         </AuthProvider>
         <Toaster position="top-right" richColors closeButton />
+        {/* <script
+          src="https://mot-chatbot-widget.vercel.app/widget-loader.js"
+          data-bot-id="cmlezg75c000004lam7d9ob6m"
+          defer
+        ></script> */}
       </body>
     </html>
   );

@@ -18,6 +18,7 @@ import {
   EyeOff,
   Calendar,
   MessageSquare,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -368,8 +369,8 @@ export default function AdminUsersPage() {
             onClick={() => router.push('/admin/feedback')}
             className="gap-2 bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
           >
-            <MessageSquare className="h-4 w-4" />
-            Feedback
+            <ClipboardList className="h-4 w-4" />
+            Survey
           </Button>
           <Button
             variant="outline"
