@@ -49,10 +49,13 @@ export async function POST(request: Request) {
       },
     });
 
-    // Update row count
+    // Update row count and lastModifiedAt
     await prisma.dataset.update({
       where: { id: datasetId },
-      data: { rowCount: { increment: 1 } },
+      data: {
+        rowCount: { increment: 1 },
+        lastModifiedAt: new Date(),
+      },
     });
 
     return NextResponse.json({ success: true, row });

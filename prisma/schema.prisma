@@ -18,6 +18,7 @@ model User {
   endDate       DateTime?  // Account end date (null = no expiry)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  geminiKey     String?   // User-provided Gemini API key
   
   @@index([email])
   @@index([isAdmin])
@@ -50,17 +51,20 @@ model UploadSession {
 
 // NEW: Dataset - represents an uploaded CSV/Excel file
 model Dataset {
-  id          String    @id @default(cuid())
-  userId      String    // Supabase Auth user ID
-  name        String    // User-friendly name like "January Sales 2024"
-  fileName    String    // Original file name "sales-jan.csv"
-  columns     Json      // Column metadata: [{"name":"Date","type":"date"}, ...]
-  rowCount    Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  userId              String    // Supabase Auth user ID
+  name                String    // User-friendly name like "January Sales 2024"
+  fileName            String    // Original file name "sales-jan.csv"
+  columns             Json      // Column metadata: [{"name":"Date","type":"date"}, ...]
+  rowCount            Int       @default(0)
+  recommendations     Json?     // AI recommendations from Gemini (stored as JSON array or record)
+  lastModifiedAt      DateTime? // Updated whenever a row is added, edited, or deleted
+  lastAiGeneratedAt   DateTime? // Updated whenever AI recommendations are generated
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
   
   // Relation to data rows
-  rows        DataRow[]
+  rows                DataRow[]
   
   @@index([userId])
   @@index([createdAt])

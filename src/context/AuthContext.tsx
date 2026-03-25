@@ -44,6 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
+      // 🧹 Clear session flags (like survey skip) when logging out
+      sessionStorage.clear();
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);

@@ -1,6 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+  useEffect,
+} from 'react';
 import enTranslations from '@/locales/en.json';
 import mmTranslations from '@/locales/mm.json';
 
@@ -39,7 +46,20 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>('en');
+
+  // Load language from localStorage on mount
+  useEffect(() => {
+    const savedLang = localStorage.getItem('genius-board-language') as Language;
+    if (savedLang && (savedLang === 'en' || savedLang === 'mm')) {
+      setLanguageState(savedLang);
+    }
+  }, []);
+
+  const setLanguage = useCallback((lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem('genius-board-language', lang);
+  }, []);
 
   const t = useCallback(
     (key: string): string => {
@@ -49,8 +69,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 
   const toggleLanguage = useCallback(() => {
-    setLanguage(prev => (prev === 'en' ? 'mm' : 'en'));
-  }, []);
+    const nextLang = language === 'en' ? 'mm' : 'en';
+    setLanguageState(nextLang);
+    localStorage.setItem('genius-board-language', nextLang);
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, toggleLanguage }}>

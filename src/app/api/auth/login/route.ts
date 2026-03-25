@@ -66,6 +66,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
     }
 
+    // Update geminiKey if provided
+    const { geminiKey } = body;
+    if (geminiKey) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { geminiKey },
+      });
+    }
+
     // Create JWT token
     const token = await new SignJWT({
       userId: user.id,

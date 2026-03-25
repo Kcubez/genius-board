@@ -8,14 +8,17 @@ import {
   ChevronDown,
   Loader2,
   LayoutGrid,
-  Trash2,
   RefreshCw,
   Sparkles,
   AlertTriangle,
+  Key,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -36,7 +39,7 @@ import { calculateKpis, detectKpiColumns } from '@/lib/kpi-calculator';
 import { convertToCsv, downloadCsv } from '@/lib/csv-parser';
 import { CleaningResult } from '@/types/data-cleaner';
 import { toast } from 'sonner';
-import { KpiCards } from '@/components/dashboard';
+import { KpiCards, AiRecommendations } from '@/components/dashboard';
 
 interface DataRow {
   id: string;
@@ -52,6 +55,9 @@ interface Dataset {
   columns: ColumnInfo[];
   rowCount: number;
   rows: DataRow[];
+  recommendations?: Record<string, unknown> | null;
+  lastModifiedAt?: string | null;
+  lastAiGeneratedAt?: string | null;
 }
 
 export default function DatasetDashboardPage() {
@@ -64,14 +70,20 @@ export default function DatasetDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filter[]>([]);
   const [priorityColumn, setPriorityColumn] = useState<string | null>(null);
-  const [showDataCleaner, setShowDataCleaner] = useState(false);
-  const [isCleaning, setIsCleaning] = useState(false);
-  const [cleaningProgress, setCleaningProgress] = useState<{
-    current: number;
-    total: number;
-  } | null>(null);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [newApiKey, setNewApiKey] = useState('');
+  const [isUpdatingKey, setIsUpdatingKey] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Derived from DB timestamps — true when data was modified after last AI generation
+  // This is reliable across devices, browsers, and page refreshes
+  const hasDataChanged = useMemo(() => {
+    if (!dataset) return false;
+    if (!dataset.lastModifiedAt) return false;                          // never modified
+    if (!dataset.lastAiGeneratedAt) return true;                        // modified but AI never ran
+    return new Date(dataset.lastModifiedAt) > new Date(dataset.lastAiGeneratedAt);
+  }, [dataset]);
 
   // Fetch dataset from Supabase
   useEffect(() => {
@@ -112,6 +124,11 @@ export default function DatasetDashboardPage() {
       console.error('Error refreshing data:', error);
     }
   }, [datasetId]);
+
+  // Called when user adds or edits a row — refreshData picks up the new lastModifiedAt from DB
+  const handleDataModified = useCallback(async () => {
+    await refreshData();
+  }, [refreshData]);
 
   // Create a structure that keeps row IDs with their data for efficient filtering
   const rowsWithIds = useMemo(() => {
@@ -321,95 +338,28 @@ export default function DatasetDashboardPage() {
     }
   }, [datasetId, router]);
 
-  // Data cleaning handler - sends data in chunks to avoid Vercel's size limit
-  const handleCleanComplete = useCallback(
-    async (
-      cleanedData: Record<string, string | number | Date | null>[],
-      result: CleaningResult
-    ) => {
-      setIsCleaning(true);
-      try {
-        // Chunk size - keep small to stay under Vercel's 4.5MB limit
-        const CHUNK_SIZE = 1000;
-        const totalRows = cleanedData.length;
-        const totalChunks = Math.ceil(totalRows / CHUNK_SIZE);
-
-        // If data is small, send all at once
-        if (totalRows <= CHUNK_SIZE) {
-          const response = await fetch(`/api/datasets/${datasetId}/clean`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cleanedData }),
-          });
-
-          const apiResult = await response.json();
-          if (!apiResult.success) {
-            throw new Error(apiResult.error);
-          }
-        } else {
-          // Send data in chunks for large datasets
-          // Show initial progress toast
-          toast.loading(`Cleaning data... (0/${totalChunks})`, { id: 'cleaning-progress' });
-
-          for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            const start = chunkIndex * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, totalRows);
-            const chunk = cleanedData.slice(start, end);
-
-            // Update progress state
-            setCleaningProgress({ current: chunkIndex + 1, total: totalChunks });
-
-            // Update progress toast
-            toast.loading(`Cleaning data... (${chunkIndex + 1}/${totalChunks})`, {
-              id: 'cleaning-progress',
-            });
-
-            const response = await fetch(`/api/datasets/${datasetId}/clean`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                cleanedData: chunk,
-                chunkIndex,
-                totalChunks,
-                totalRows,
-              }),
-            });
-
-            const apiResult = await response.json();
-            if (!apiResult.success) {
-              toast.dismiss('cleaning-progress');
-              throw new Error(apiResult.error || `Failed at chunk ${chunkIndex + 1}`);
-            }
-          }
-
-          // Dismiss progress toast
-          toast.dismiss('cleaning-progress');
-          setCleaningProgress(null);
-        }
-
-        // Show appropriate toast based on whether any changes were made
-        if (result.removedRows === 0 && result.modifiedCells === 0) {
-          toast.info(t('dataCleaner.noChangesNeeded') || 'No Changes Needed', {
-            description:
-              t('dataCleaner.noDataModified') ||
-              'Your data is already clean! No modifications were necessary.',
-          });
-        } else {
-          toast.success(t('dataCleaner.cleaningComplete') || 'Cleaning Complete!', {
-            description: `Removed ${result.removedRows} rows, modified ${result.modifiedCells} cells`,
-          });
-        }
-        // Refresh the data
-        refreshData();
-      } catch (error) {
-        console.error('Error saving cleaned data:', error);
-        toast.error('Failed to save cleaned data');
-      } finally {
-        setIsCleaning(false);
+  const handleUpdateApiKey = async () => {
+    if (!newApiKey) return;
+    setIsUpdatingKey(true);
+    try {
+      const response = await fetch('/api/auth/update-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ geminiKey: newApiKey }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        toast.success('API Key updated successfully');
+        setShowApiKeyModal(false);
+      } else {
+        toast.error('Failed to update API key');
       }
-    },
-    [datasetId, refreshData, t]
-  );
+    } catch (err) {
+      toast.error('Error updating API key');
+    } finally {
+      setIsUpdatingKey(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -447,16 +397,11 @@ export default function DatasetDashboardPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowDataCleaner(true)}
-            disabled={isCleaning}
+            onClick={() => setShowApiKeyModal(true)}
             className="gap-2 border-violet-500 text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"
           >
-            {isCleaning ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4" />
-            )}
-            <span className="hidden sm:inline">{t('dataCleaner.button') || 'Clean Data'}</span>
+            <Key className="h-4 w-4" />
+            <span className="hidden sm:inline">Change API Key</span>
           </Button>
           <Button
             variant="outline"
@@ -481,6 +426,16 @@ export default function DatasetDashboardPage() {
 
       {/* KPI Cards */}
       {kpiData && <KpiCards kpiData={kpiData} />}
+
+      {/* AI Recommendations */}
+      <AiRecommendations
+        datasetId={datasetId}
+        savedRecommendations={dataset?.recommendations || null}
+        data={deferredFilteredData}
+        columns={csvData?.columns || []}
+        hasDataChanged={hasDataChanged}
+        onRecommendationGenerated={refreshData}
+      />
 
       {/* Filter Panel - collapsible with violet accent */}
       <details
@@ -574,21 +529,61 @@ export default function DatasetDashboardPage() {
                 columns={csvData.columns}
                 datasetId={datasetId}
                 rowIds={filteredRowIds}
-                onDataChange={refreshData}
+                onDataChange={handleDataModified}
               />
             </CardContent>
           </Card>
         </>
       )}
 
-      {/* Data Cleaner Modal */}
-      <DataCleanerModal
-        open={showDataCleaner}
-        onOpenChange={setShowDataCleaner}
-        data={csvData.rows}
-        columns={csvData.columns}
-        onCleanComplete={handleCleanComplete}
-      />
+      {/* API Key Modal */}
+      <Dialog open={showApiKeyModal} onOpenChange={setShowApiKeyModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Gemini API Key</DialogTitle>
+            <DialogDescription>
+              Provide your personal Google Gemini API key to power AI recommendations for your
+              reports.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="api-key">Gemini API Key</Label>
+              <Input
+                id="api-key"
+                type="password"
+                placeholder="Paste your API key here"
+                value={newApiKey}
+                onChange={e => setNewApiKey(e.target.value)}
+              />
+              <p className="text-[10px] text-muted-foreground italic">
+                Get yours for free at{' '}
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-violet-600 underline"
+                >
+                  aistudio.google.com
+                </a>
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApiKeyModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateApiKey}
+              disabled={isUpdatingKey || !newApiKey}
+              className="bg-violet-600 hover:bg-violet-700"
+            >
+              {isUpdatingKey ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Update Key
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
       <Dialog open={showDeleteModal} onOpenChange={open => !isDeleting && setShowDeleteModal(open)}>

@@ -16,29 +16,33 @@ function detectColumnType(values: (string | null | undefined)[], columnName?: st
     lowerColName.includes(hint)
   );
 
-  // Check if values match strict date patterns
+  // Check if values match strict date patterns (supporting both 1 and 2 digits for month/day)
   const datePatterns = [
-    /^\d{4}-\d{2}-\d{2}$/, // YYYY-MM-DD
-    /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/, // YYYY-MM-DD HH:MM or with T
-    /^\d{2}\/\d{2}\/\d{4}$/, // MM/DD/YYYY
-    /^\d{2}-\d{2}-\d{4}$/, // DD-MM-YYYY
-    /^\d{4}\/\d{2}\/\d{2}$/, // YYYY/MM/DD
+    /^\d{4}-\d{1,2}-\d{1,2}$/, // YYYY-MM-DD
+    /^\d{4}-\d{1,2}-\d{1,2}[ T]\d{2}:\d{2}/, // YYYY-MM-DD HH:MM
+    /^\d{1,2}\/\d{1,2}\/\d{4}$/, // M/D/YYYY or MM/DD/YYYY
+    /^\d{1,2}-\d{1,2}-\d{4}$/, // D-M-YYYY or DD-MM-YYYY
+    /^\d{4}\/\d{1,2}\/\d{1,2}$/, // YYYY/M/D
   ];
 
   const matchesDatePattern = sampleValues.every(v =>
-    datePatterns.some(pattern => pattern.test(v as string))
+    datePatterns.some(pattern => pattern.test(String(v).trim()))
   );
 
   // Only detect as date if: column name contains date hint AND values match patterns
-  // OR if values strongly match date patterns (YYYY-MM-DD format)
+  // OR if values strongly match date patterns
   if (isDateColumnName && matchesDatePattern) return 'date';
-  if (matchesDatePattern && sampleValues.every(v => /^\d{4}-\d{2}-\d{2}/.test(v as string)))
-    return 'date';
+  if (matchesDatePattern) return 'date';
 
-  // Check if all values are numbers
+  // Check if all values are numbers (strictly)
   const isNumber = sampleValues.every(v => {
-    const cleaned = String(v).replace(/[,$]/g, '');
-    return !isNaN(parseFloat(cleaned)) && isFinite(parseFloat(cleaned));
+    const s = String(v).trim();
+    if (s === '') return true;
+    // Remove currency/commas
+    const cleaned = s.replace(/[,$]/g, '');
+    // Must be a valid number and NOT contains characters like "/" or too many "-"
+    if (cleaned.includes('/') || cleaned.split('-').length > 2) return false;
+    return !isNaN(Number(cleaned)) && isFinite(Number(cleaned));
   });
 
   if (isNumber) return 'number';

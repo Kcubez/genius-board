@@ -129,5 +129,43 @@
     "configureCleaning": "Configure Cleaning",
     "noChangesNeeded": "No Changes Needed",
     "noDataModified": "Your data is already clean! No modifications were necessary."
+  },
+  "recommendations": {
+    "title": "AI Recommendations",
+    "subtitle": "Smart insights powered by Gemini AI based on your data patterns",
+    "insights": "insights",
+    "highPriority": "high priority",
+    "all": "All",
+    "showAll": "Show All",
+    "showLess": "Show Less",
+    "analyzing": "Gemini AI is analyzing your data...",
+    "types": {
+      "regional": "Regional",
+      "product": "Product",
+      "time": "Time Analysis",
+      "customer": "Customer",
+      "payment": "Payment",
+      "general": "Insight"
+    },
+    "priorities": {
+      "high": "High Priority",
+      "medium": "Medium",
+      "low": "Low"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "description": "Sign in to your account",
+      "email": "Email Address",
+      "password": "Password",
+      "geminiKey": "Gemini API Key",
+      "geminiKeyPlaceholder": "Paste your Gemini API key here",
+      "rememberMe": "Remember my email",
+      "submit": "Sign In",
+      "loading": "Signing in...",
+      "success": "Welcome back!",
+      "error": "Login failed"
+    }
   }
 }

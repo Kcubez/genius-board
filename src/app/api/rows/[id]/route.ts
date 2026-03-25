@@ -62,6 +62,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       data: { data: body.data as JsonValue },
     });
 
+    // Update lastModifiedAt on the parent dataset
+    await prisma.dataset.update({
+      where: { id: existing.datasetId },
+      data: { lastModifiedAt: new Date() },
+    });
+
     return NextResponse.json({ success: true, row });
   } catch (error) {
     console.error('Error updating row:', error);
@@ -89,10 +95,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       where: { id },
     });
 
-    // Update row count
+    // Update row count and lastModifiedAt
     await prisma.dataset.update({
       where: { id: row.datasetId },
-      data: { rowCount: { decrement: 1 } },
+      data: {
+        rowCount: { decrement: 1 },
+        lastModifiedAt: new Date(),
+      },
     });
 
     return NextResponse.json({ success: true });

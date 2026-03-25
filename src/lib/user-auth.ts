@@ -11,6 +11,7 @@ export async function verifyUserSession(): Promise<{
   userId: string;
   email: string;
   name: string | null;
+  geminiKey: string | null;
 } | null> {
   try {
     const cookieStore = await cookies();
@@ -39,7 +40,7 @@ export async function verifyUserSession(): Promise<{
       return null;
     }
 
-    return { userId: user.id, email: user.email, name: user.name };
+    return { userId: user.id, email: user.email, name: user.name, geminiKey: user.geminiKey };
   } catch {
     return null;
   }

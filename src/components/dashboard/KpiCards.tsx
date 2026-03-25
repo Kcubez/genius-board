@@ -267,22 +267,25 @@ export function KpiCards({ kpiData }: KpiCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
       {cards
         .filter(card => card.value > 0)
         .map((card, index) => {
           const Icon = card.icon;
+          const isPriority =
+            card.labelKey.includes('totalSales') || card.labelKey.includes('totalProfit');
 
           return (
             <div
               key={index}
               className={`
-                group relative overflow-hidden rounded-2xl p-4 sm:p-5
+                group relative overflow-hidden rounded-3xl p-4 sm:p-6
                 bg-linear-to-br ${card.gradient}
-                shadow-lg ${card.glowColor}
-                hover:shadow-xl hover:-translate-y-1
-                transition-all duration-300 ease-out
-                cursor-default
+                shadow-xl ${card.glowColor}
+                hover:shadow-2xl hover:-translate-y-1.5
+                transition-all duration-500 ease-out
+                cursor-default h-full flex flex-col justify-between
+                ${isPriority ? 'col-span-2 md:col-span-2 lg:col-span-3 min-h-40 sm:min-h-50' : 'col-span-1 md:col-span-1 lg:col-span-1 min-h-35'}
               `}
               style={{
                 animationDelay: `${index * 80}ms`,
@@ -291,29 +294,61 @@ export function KpiCards({ kpiData }: KpiCardsProps) {
               {/* Decorative Pattern */}
               <CardPattern type={card.pattern} />
 
-              {/* Frosted Glass Icon */}
-              <div className="relative z-10 mb-6 sm:mb-8">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20 group-hover:bg-white/25 group-hover:scale-110 transition-all duration-300">
-                  <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white/90" strokeWidth={1.8} />
+              <div className="relative z-10 flex flex-col h-full gap-4">
+                {/* Header: Icon & Top Badge */}
+                <div className="flex items-start justify-between">
+                  <div
+                    className={`
+                    rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 
+                    group-hover:bg-white/30 group-hover:scale-110 transition-all duration-500
+                    ${isPriority ? 'w-12 h-12 sm:w-14 sm:h-14' : 'w-9 h-9 sm:w-10 sm:h-10'}
+                  `}
+                  >
+                    <Icon
+                      className={`${isPriority ? 'h-6 w-6 sm:h-7 sm:w-7' : 'h-4.5 w-4.5 sm:h-5 sm:w-5'} text-white`}
+                      strokeWidth={isPriority ? 2 : 1.5}
+                    />
+                  </div>
+                  {isPriority && (
+                    <div className="hidden sm:block px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-[10px] font-black text-white/90 uppercase tracking-widest">
+                      Key Metric
+                    </div>
+                  )}
+                </div>
+
+                {/* Value & Label */}
+                <div className="mt-auto space-y-1">
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <h3
+                      className={`font-black text-white tracking-tight leading-none ${isPriority ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-lg sm:text-2xl'}`}
+                    >
+                      {formatNumber(card.value, card.formatType)}
+                    </h3>
+                    {card.formatType === 'currency' && (
+                      <span
+                        className={`font-bold text-white/80 ${isPriority ? 'text-base sm:text-lg' : 'text-[10px]'}`}
+                      >
+                        MMK
+                      </span>
+                    )}
+                    {card.formatType === 'decimal' && (
+                      <span
+                        className={`font-bold text-white/80 ${isPriority ? 'text-base sm:text-lg' : 'text-[10px]'}`}
+                      >
+                        %
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    className={`font-bold text-white/60 uppercase tracking-widest truncate ${isPriority ? 'text-xs sm:text-sm' : 'text-[9px] sm:text-[10px]'}`}
+                  >
+                    {t(card.labelKey)}
+                  </p>
                 </div>
               </div>
 
-              {/* Value */}
-              <div className="relative z-10">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-none mb-1">
-                  {formatNumber(card.value, card.formatType)}
-                  {card.formatType === 'currency' && (
-                    <span className="ml-1 text-sm font-medium">MMK</span>
-                  )}
-                  {card.formatType === 'decimal' && '%'}
-                </h3>
-                <p className="text-[11px] sm:text-xs font-medium text-white/70 uppercase tracking-wider">
-                  {t(card.labelKey)}
-                </p>
-              </div>
-
-              {/* Hover glow effect */}
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-white/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              {/* Enhanced Hover glow effect */}
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             </div>
           );
         })}

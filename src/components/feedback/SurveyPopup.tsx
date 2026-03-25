@@ -22,9 +22,12 @@ export function SurveyPopup() {
     if (authLoading || !user || hasChecked) return;
 
     const localKey = `survey_answered_${user.id}`;
-    const alreadyAnswered = localStorage.getItem(localKey);
+    const sessionKey = `survey_skipped_${user.id}`;
 
-    if (alreadyAnswered) {
+    const alreadyAnswered = localStorage.getItem(localKey);
+    const alreadySkippedThisSession = sessionStorage.getItem(sessionKey);
+
+    if (alreadyAnswered || alreadySkippedThisSession) {
       setHasChecked(true);
       return;
     }
@@ -84,7 +87,8 @@ export function SurveyPopup() {
   const handleSkip = () => {
     setIsOpen(false);
     if (user) {
-      // Don't mark as answered - will show again next session
+      // Mark as skipped for THIS session only so it doesn't show on every refresh
+      sessionStorage.setItem(`survey_skipped_${user.id}`, 'true');
     }
   };
 

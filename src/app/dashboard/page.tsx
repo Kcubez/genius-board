@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,6 +36,7 @@ export default function DashboardPage() {
           fileName: file.name,
           columns: result.data.columns,
           rows: result.data.rows,
+          language: language,
         }),
       });
 
@@ -45,10 +46,10 @@ export default function DashboardPage() {
         toast.success(`${result.data.totalRows} rows uploaded!`);
         router.push(`/dashboard/${saveResult.dataset.id}`);
       } else {
-        throw new Error(saveResult.error);
+        toast.error(saveResult.error || 'Upload failed');
       }
     } catch (error) {
-      toast.error('Upload failed');
+      toast.error('Something went wrong during upload');
     } finally {
       setUploading(false);
       // Reset file input so same file can be selected again
