@@ -70,19 +70,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { datasetId, rows, isLastChunk } = body;
+    const { datasetId, rows, startIndex, isLastChunk } = body;
 
-    // Batch insert rows
+    const dataset = await prisma.dataset.findFirst({
+      where: { id: datasetId, userId: session.userId },
+    });
+
+    if (!dataset) {
+      return NextResponse.json({ success: false, error: 'Dataset not found' }, { status: 404 });
+    }
+
+    const baseIndex = startIndex || 0;
     await prisma.dataRow.createMany({
       data: rows.map((row: any, index: number) => ({
         datasetId,
-        rowIndex: index, // In real world should handle true index
+        rowIndex: baseIndex + index,
         data: row as JsonValue,
       })),
     });
 
     if (isLastChunk) {
-      // 🤖 Trigger pre-generation for BOTH languages
+      const actualRowCount = await prisma.dataRow.count({
+        where: { datasetId },
+      });
+
+      await prisma.dataset.update({
+        where: { id: datasetId },
+        data: {
+          rowCount: actualRowCount,
+          lastModifiedAt: new Date(),
+        },
+      });
+
       generateAndSaveAllRecommendationsForDataset(datasetId).catch(err =>
         console.error('Background generation failed:', err)
       );
