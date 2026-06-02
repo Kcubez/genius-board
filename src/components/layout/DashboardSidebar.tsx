@@ -78,6 +78,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
   useEffect(() => {
     async function fetchRecent() {
       try {
+        setLoadingRecent(true);
         const res = await fetch('/api/datasets?limit=5');
         const data = await res.json();
         if (data.success && Array.isArray(data.datasets)) {
@@ -90,7 +91,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
       }
     }
     fetchRecent();
-  }, []);
+  }, [pathname]);
 
   const isActive = (href: string, exact: boolean) => {
     if (exact) return pathname === href;
