@@ -381,45 +381,53 @@ export default function DatasetDashboardPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-5">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="dash-card px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate" title={dataset.name}>
-            {dataset.name}
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground truncate">
-            {csvData.fileName} • {filteredData.length} {t('common.of')} {csvData.totalRows}{' '}
-            {t('common.rows')}
+          <div className="flex items-center gap-2 mb-0.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm shrink-0">
+              <LayoutGrid className="h-4 w-4 text-white" />
+            </div>
+            <h1
+              className="text-lg sm:text-xl font-bold truncate text-slate-800 dark:text-slate-100"
+              title={dataset.name}
+            >
+              {dataset.name}
+            </h1>
+          </div>
+          <p className="text-xs text-slate-400 pl-10 truncate">
+            {csvData.fileName} &bull; {filteredData.length.toLocaleString()} {t('common.of')}{' '}
+            {csvData.totalRows.toLocaleString()} {t('common.rows')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowApiKeyModal(true)}
-            className="gap-2 border-violet-500 text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"
+            className="gap-1.5 border-violet-200 text-violet-600 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-300 transition-all rounded-xl"
           >
-            <Key className="h-4 w-4" />
-            <span className="hidden sm:inline">Change API Key</span>
+            <Key className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline text-xs font-medium">API Key</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleExport}
-            className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+            className="gap-1.5 border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all rounded-xl"
           >
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('common.export')}</span>
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline text-xs font-medium">{t('common.export')}</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowDeleteModal(true)}
-            className="gap-2 border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+            className="gap-1.5 border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all rounded-xl"
           >
-            <Trash2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Delete</span>
+            <Trash2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline text-xs font-medium">Delete</span>
           </Button>
         </div>
       </div>
@@ -437,24 +445,26 @@ export default function DatasetDashboardPage() {
         onRecommendationGenerated={refreshData}
       />
 
-      {/* Filter Panel - collapsible with violet accent */}
+      {/* Filter Panel */}
       <details
-        className="group border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden"
+        className="group dash-card overflow-hidden"
         open
       >
-        <summary className="flex items-center justify-between px-4 py-3 cursor-pointer list-none bg-linear-to-r from-violet-50/50 to-purple-50/30 dark:from-violet-950/20 dark:to-purple-950/10 hover:from-violet-50 hover:to-purple-50/50 dark:hover:from-violet-950/30 dark:hover:to-purple-950/20 transition-colors">
-          <span className="font-medium flex items-center gap-2 text-violet-700 dark:text-violet-300">
-            <FilterIcon className="h-4 w-4" />
+        <summary className="flex items-center justify-between px-5 py-3.5 cursor-pointer list-none hover:bg-violet-50/50 dark:hover:bg-violet-950/20 transition-colors">
+          <span className="font-semibold flex items-center gap-2 text-slate-700 dark:text-slate-200 text-sm">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+              <FilterIcon className="h-3.5 w-3.5 text-white" />
+            </div>
             {t('filter.title')}
             {filters.length > 0 && (
-              <Badge className="text-xs bg-violet-600 text-white">
+              <Badge className="text-xs bg-violet-600 text-white rounded-full px-2">
                 {filters.filter(f => f.isActive).length} active
               </Badge>
             )}
           </span>
-          <ChevronDown className="h-4 w-4 text-violet-500 transition-transform group-open:rotate-180" />
+          <ChevronDown className="h-4 w-4 text-violet-400 transition-transform group-open:rotate-180" />
         </summary>
-        <div className="p-4 bg-white dark:bg-slate-900/30">
+        <div className="border-t border-violet-100/60 dark:border-violet-900/20 p-4 sm:p-5">
           <FilterPanel
             columns={csvData.columns}
             filters={filters}
@@ -519,11 +529,21 @@ export default function DatasetDashboardPage() {
           />
 
           {/* Data Table Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Data Table</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="dash-card overflow-hidden">
+            <div className="px-5 py-4 border-b border-violet-100/60 dark:border-violet-900/20 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center shadow-sm">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18M10 3v18M14 3v18" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Data Table</h3>
+                  <p className="text-xs text-slate-400">{filteredData.length.toLocaleString()} rows</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 sm:p-5">
               <EditableTable
                 data={filteredData}
                 columns={csvData.columns}
@@ -531,8 +551,8 @@ export default function DatasetDashboardPage() {
                 rowIds={filteredRowIds}
                 onDataChange={handleDataModified}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </>
       )}
 

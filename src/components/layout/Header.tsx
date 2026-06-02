@@ -32,17 +32,17 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-violet-100/60 dark:border-violet-900/30 bg-white/98 dark:bg-slate-950/98 backdrop-blur-xl shadow-sm shadow-violet-100/40 dark:shadow-violet-900/20">
       <div className="container flex h-14 items-center justify-between gap-2">
         {/* Logo */}
         <Link
           href="/dashboard"
-          className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-lg shrink-0"
+          className="flex items-center gap-2 font-bold text-base sm:text-lg shrink-0 group"
         >
-          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-linear-to-r from-violet-500 to-purple-600 flex items-center justify-center">
-            <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+          <div className="h-8 w-8 sm:h-8 sm:w-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md shadow-violet-500/25 group-hover:shadow-violet-500/40 group-hover:scale-105 transition-all duration-200">
+            <LayoutDashboard className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" />
           </div>
-          <span className="bg-linear-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent hidden min-[360px]:inline">
+          <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent hidden min-[360px]:inline font-extrabold">
             Genius Board
           </span>
         </Link>
@@ -122,33 +122,57 @@ export function Header() {
             variant="outline"
             size="sm"
             onClick={() => router.push('/dashboard/reports')}
-            className="gap-2 border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-800 hover:border-violet-300 transition-all"
+            className="gap-1.5 border-violet-200 bg-violet-50/80 text-violet-700 hover:bg-violet-100 hover:text-violet-800 hover:border-violet-300 transition-all rounded-xl text-xs font-semibold"
           >
-            <FolderOpen className="h-4 w-4" />
-            <span className="hidden sm:inline font-medium">All Reports</span>
+            <FolderOpen className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">All Reports</span>
           </Button>
 
           {/* User Menu */}
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline max-w-37.5 truncate">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-colors px-2"
+                >
+                  {/* Avatar circle with initials */}
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                    {(user.name || user.email || 'U')
+                      .split(' ')
+                      .slice(0, 2)
+                      .map(n => n[0]?.toUpperCase())
+                      .join('')}
+                  </div>
+                  <span className="hidden sm:inline max-w-32 truncate text-sm font-medium text-slate-700 dark:text-slate-200">
                     {user.name || user.email?.split('@')[0]}
                   </span>
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user.name || 'User'}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
+              <DropdownMenuContent align="end" className="w-60 p-0 overflow-hidden rounded-2xl border-violet-100 dark:border-violet-900/50 shadow-xl">
+                {/* Avatar header */}
+                <div className="bg-gradient-to-br from-violet-500 to-purple-600 px-4 py-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white text-sm font-bold">
+                    {(user.name || user.email || 'U')
+                      .split(' ')
+                      .slice(0, 2)
+                      .map(n => n[0]?.toUpperCase())
+                      .join('')}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{user.name || 'User'}</p>
+                    <p className="text-xs text-white/70 truncate">{user.email}</p>
+                  </div>
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign out
-                </DropdownMenuItem>
+                <div className="p-1">
+                  <DropdownMenuSeparator className="my-0" />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer rounded-xl mx-1 my-1">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           )}

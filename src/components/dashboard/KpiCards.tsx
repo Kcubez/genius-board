@@ -25,167 +25,46 @@ interface CardConfig {
   value: number;
   icon: LucideIcon;
   gradient: string;
-  glowColor: string;
+  iconBg: string;
+  accentColor: string;
   formatType: 'currency' | 'number' | 'decimal';
-  pattern: 'circles' | 'lines' | 'dots' | 'hexagons' | 'waves' | 'grid' | 'rings' | 'diamonds';
+  decorShape: 'circle' | 'rings' | 'dots' | 'arc';
 }
 
-// Decorative SVG patterns for each card
-function CardPattern({ type }: { type: CardConfig['pattern'] }) {
-  const cls = 'absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none';
-
-  switch (type) {
-    case 'circles':
-      return (
-        <svg className={cls} viewBox="0 0 200 200">
-          <circle cx="160" cy="40" r="60" fill="none" stroke="white" strokeWidth="1" />
-          <circle cx="160" cy="40" r="40" fill="none" stroke="white" strokeWidth="0.5" />
-          <circle cx="160" cy="40" r="20" fill="none" stroke="white" strokeWidth="0.5" />
-        </svg>
-      );
-    case 'lines':
-      return (
-        <svg className={cls} viewBox="0 0 200 200">
-          <line x1="120" y1="0" x2="200" y2="80" stroke="white" strokeWidth="0.5" />
-          <line x1="140" y1="0" x2="200" y2="60" stroke="white" strokeWidth="0.5" />
-          <line x1="160" y1="0" x2="200" y2="40" stroke="white" strokeWidth="0.5" />
-          <line x1="100" y1="0" x2="200" y2="100" stroke="white" strokeWidth="0.5" />
-          <line x1="120" y1="200" x2="200" y2="120" stroke="white" strokeWidth="0.5" />
-        </svg>
-      );
-    case 'dots':
-      return (
-        <svg className={cls} viewBox="0 0 200 200">
-          {[...Array(6)].map((_, i) =>
-            [...Array(6)].map((_, j) => (
-              <circle key={`${i}-${j}`} cx={120 + i * 16} cy={10 + j * 16} r="1.5" fill="white" />
-            ))
-          )}
-        </svg>
-      );
-    case 'hexagons':
-      return (
-        <svg className={cls} viewBox="0 0 200 200">
-          <path
-            d="M160 30 L180 42 L180 66 L160 78 L140 66 L140 42 Z"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.8"
-          />
-          <path
-            d="M180 70 L200 82 L200 106 L180 118 L160 106 L160 82 Z"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.5"
-          />
-          <path
-            d="M140 70 L160 82 L160 106 L140 118 L120 106 L120 82 Z"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.5"
-          />
-        </svg>
-      );
-    case 'waves':
-      return (
-        <svg className={cls} viewBox="0 0 200 200">
-          <path d="M0 160 Q50 140 100 160 T200 160" fill="none" stroke="white" strokeWidth="0.8" />
-          <path d="M0 175 Q50 155 100 175 T200 175" fill="none" stroke="white" strokeWidth="0.5" />
-          <path d="M0 190 Q50 170 100 190 T200 190" fill="none" stroke="white" strokeWidth="0.5" />
-        </svg>
-      );
-    case 'grid':
-      return (
-        <svg className={cls} viewBox="0 0 200 200">
-          <rect
-            x="130"
-            y="10"
-            width="30"
-            height="30"
-            rx="4"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.8"
-          />
-          <rect
-            x="165"
-            y="10"
-            width="30"
-            height="30"
-            rx="4"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.5"
-          />
-          <rect
-            x="130"
-            y="45"
-            width="30"
-            height="30"
-            rx="4"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.5"
-          />
-          <rect
-            x="165"
-            y="45"
-            width="30"
-            height="30"
-            rx="4"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.5"
-          />
-        </svg>
-      );
-    case 'rings':
-      return (
-        <svg className={cls} viewBox="0 0 200 200">
-          <circle cx="170" cy="50" r="45" fill="none" stroke="white" strokeWidth="0.8" />
-          <circle cx="170" cy="50" r="30" fill="none" stroke="white" strokeWidth="0.5" />
-          <circle cx="130" cy="170" r="25" fill="none" stroke="white" strokeWidth="0.5" />
-        </svg>
-      );
-    case 'diamonds':
-      return (
-        <svg className={cls} viewBox="0 0 200 200">
-          <rect
-            x="150"
-            y="20"
-            width="30"
-            height="30"
-            rx="2"
-            transform="rotate(45 165 35)"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.8"
-          />
-          <rect
-            x="170"
-            y="50"
-            width="20"
-            height="20"
-            rx="2"
-            transform="rotate(45 180 60)"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.5"
-          />
-          <rect
-            x="130"
-            y="50"
-            width="15"
-            height="15"
-            rx="2"
-            transform="rotate(45 137.5 57.5)"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.5"
-          />
-        </svg>
-      );
-  }
+/** Lightweight decorative shape in card bottom-right corner */
+function DecorShape({ type, color }: { type: CardConfig['decorShape']; color: string }) {
+  const cls = 'absolute bottom-0 right-0 pointer-events-none opacity-[0.12]';
+  if (type === 'circle')
+    return (
+      <svg className={cls} width="90" height="90" viewBox="0 0 90 90">
+        <circle cx="70" cy="70" r="55" fill={color} />
+      </svg>
+    );
+  if (type === 'rings')
+    return (
+      <svg className={cls} width="90" height="90" viewBox="0 0 90 90">
+        <circle cx="70" cy="70" r="50" fill="none" stroke={color} strokeWidth="14" />
+        <circle cx="70" cy="70" r="30" fill="none" stroke={color} strokeWidth="8" />
+      </svg>
+    );
+  if (type === 'dots')
+    return (
+      <svg className={cls} width="90" height="90" viewBox="0 0 90 90">
+        {[0, 1, 2, 3].map(r =>
+          [0, 1, 2, 3].map(c => (
+            <circle key={`${r}-${c}`} cx={55 + c * 12} cy={55 + r * 12} r="3" fill={color} />
+          ))
+        )}
+      </svg>
+    );
+  if (type === 'arc')
+    return (
+      <svg className={cls} width="90" height="90" viewBox="0 0 90 90">
+        <path d="M 0 90 Q 45 30 90 0" fill="none" stroke={color} strokeWidth="14" />
+        <path d="M 0 90 Q 55 45 90 15" fill="none" stroke={color} strokeWidth="8" />
+      </svg>
+    );
+  return null;
 }
 
 export function KpiCards({ kpiData }: KpiCardsProps) {
@@ -196,162 +75,148 @@ export function KpiCards({ kpiData }: KpiCardsProps) {
       labelKey: 'dashboard.kpi.totalSales',
       value: kpiData.totalSales,
       icon: DollarSign,
-      gradient: 'from-emerald-500 via-emerald-600 to-teal-700',
-      glowColor: 'shadow-emerald-500/25',
+      gradient: 'from-emerald-500 to-teal-600',
+      iconBg: 'bg-emerald-400/30',
+      accentColor: '#34d399',
       formatType: 'currency',
-      pattern: 'circles',
+      decorShape: 'circle',
     },
     {
       labelKey: 'dashboard.kpi.totalOrders',
       value: kpiData.totalOrders,
       icon: ShoppingCart,
-      gradient: 'from-blue-500 via-blue-600 to-indigo-700',
-      glowColor: 'shadow-blue-500/25',
+      gradient: 'from-blue-500 to-indigo-600',
+      iconBg: 'bg-blue-400/30',
+      accentColor: '#60a5fa',
       formatType: 'number',
-      pattern: 'hexagons',
+      decorShape: 'rings',
     },
     {
       labelKey: 'dashboard.kpi.totalQuantity',
       value: kpiData.totalQuantity,
       icon: Package,
-      gradient: 'from-amber-400 via-amber-500 to-orange-600',
-      glowColor: 'shadow-amber-500/25',
+      gradient: 'from-amber-400 to-orange-500',
+      iconBg: 'bg-amber-300/30',
+      accentColor: '#fbbf24',
       formatType: 'number',
-      pattern: 'lines',
+      decorShape: 'dots',
     },
     {
       labelKey: 'dashboard.kpi.avgOrderValue',
       value: kpiData.averageOrderValue,
       icon: TrendingUp,
-      gradient: 'from-violet-500 via-purple-600 to-purple-700',
-      glowColor: 'shadow-violet-500/25',
+      gradient: 'from-violet-500 to-purple-600',
+      iconBg: 'bg-violet-400/30',
+      accentColor: '#a78bfa',
       formatType: 'currency',
-      pattern: 'dots',
+      decorShape: 'arc',
     },
     {
       labelKey: 'dashboard.kpi.uniqueCustomers',
       value: kpiData.uniqueCustomers,
       icon: Users,
-      gradient: 'from-indigo-500 via-indigo-600 to-blue-700',
-      glowColor: 'shadow-indigo-500/25',
+      gradient: 'from-rose-400 to-pink-600',
+      iconBg: 'bg-rose-300/30',
+      accentColor: '#fb7185',
       formatType: 'number',
-      pattern: 'rings',
+      decorShape: 'circle',
     },
     {
       labelKey: 'dashboard.kpi.totalCost',
       value: kpiData.totalCost,
       icon: CreditCard,
-      gradient: 'from-rose-400 via-pink-500 to-rose-600',
-      glowColor: 'shadow-rose-500/25',
+      gradient: 'from-sky-400 to-cyan-600',
+      iconBg: 'bg-sky-300/30',
+      accentColor: '#38bdf8',
       formatType: 'currency',
-      pattern: 'waves',
+      decorShape: 'rings',
     },
     {
       labelKey: 'dashboard.kpi.totalProfit',
       value: kpiData.totalProfit,
       icon: Banknote,
-      gradient: 'from-cyan-400 via-cyan-500 to-teal-600',
-      glowColor: 'shadow-cyan-500/25',
+      gradient: 'from-green-400 to-emerald-600',
+      iconBg: 'bg-green-300/30',
+      accentColor: '#4ade80',
       formatType: 'currency',
-      pattern: 'grid',
+      decorShape: 'dots',
     },
     {
       labelKey: 'dashboard.kpi.profitMargin',
       value: kpiData.profitMargin,
       icon: Percent,
-      gradient: 'from-orange-500 via-red-500 to-rose-600',
-      glowColor: 'shadow-orange-500/25',
+      gradient: 'from-orange-500 to-red-500',
+      iconBg: 'bg-orange-300/30',
+      accentColor: '#fb923c',
       formatType: 'decimal',
-      pattern: 'diamonds',
+      decorShape: 'arc',
     },
   ];
 
+  const visibleCards = cards.filter(card => card.value > 0);
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
-      {cards
-        .filter(card => card.value > 0)
-        .map((card, index) => {
-          const Icon = card.icon;
-          const isPriority =
-            card.labelKey.includes('totalSales') || card.labelKey.includes('totalProfit');
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      {visibleCards.map((card, index) => {
+        const Icon = card.icon;
+        return (
+          <div
+            key={index}
+            className={`
+              group relative overflow-hidden rounded-2xl p-4 sm:p-5
+              bg-gradient-to-br ${card.gradient}
+              shadow-lg hover:shadow-xl
+              hover:-translate-y-1
+              transition-all duration-300 ease-out
+              cursor-default min-h-[120px] sm:min-h-[130px] flex flex-col justify-between
+            `}
+            style={{ animationDelay: `${index * 60}ms` }}
+          >
+            {/* Decorative background shape */}
+            <DecorShape type={card.decorShape} color="white" />
 
-          return (
-            <div
-              key={index}
-              className={`
-                group relative overflow-hidden rounded-3xl p-4 sm:p-6
-                bg-linear-to-br ${card.gradient}
-                shadow-xl ${card.glowColor}
-                hover:shadow-2xl hover:-translate-y-1.5
-                transition-all duration-500 ease-out
-                cursor-default h-full flex flex-col justify-between
-                ${isPriority ? 'col-span-2 md:col-span-2 lg:col-span-3 min-h-40 sm:min-h-50' : 'col-span-1 md:col-span-1 lg:col-span-1 min-h-35'}
-              `}
-              style={{
-                animationDelay: `${index * 80}ms`,
-              }}
-            >
-              {/* Decorative Pattern */}
-              <CardPattern type={card.pattern} />
-
-              <div className="relative z-10 flex flex-col h-full gap-4">
-                {/* Header: Icon & Top Badge */}
-                <div className="flex items-start justify-between">
-                  <div
-                    className={`
-                    rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 
-                    group-hover:bg-white/30 group-hover:scale-110 transition-all duration-500
-                    ${isPriority ? 'w-12 h-12 sm:w-14 sm:h-14' : 'w-9 h-9 sm:w-10 sm:h-10'}
-                  `}
-                  >
-                    <Icon
-                      className={`${isPriority ? 'h-6 w-6 sm:h-7 sm:w-7' : 'h-4.5 w-4.5 sm:h-5 sm:w-5'} text-white`}
-                      strokeWidth={isPriority ? 2 : 1.5}
-                    />
-                  </div>
-                  {isPriority && (
-                    <div className="hidden sm:block px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-[10px] font-black text-white/90 uppercase tracking-widest">
-                      Key Metric
-                    </div>
-                  )}
-                </div>
-
-                {/* Value & Label */}
-                <div className="mt-auto space-y-1">
-                  <div className="flex items-baseline gap-1.5 flex-wrap">
-                    <h3
-                      className={`font-black text-white tracking-tight leading-none ${isPriority ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-lg sm:text-2xl'}`}
-                    >
-                      {formatNumber(card.value, card.formatType)}
-                    </h3>
-                    {card.formatType === 'currency' && (
-                      <span
-                        className={`font-bold text-white/80 ${isPriority ? 'text-base sm:text-lg' : 'text-[10px]'}`}
-                      >
-                        MMK
-                      </span>
-                    )}
-                    {card.formatType === 'decimal' && (
-                      <span
-                        className={`font-bold text-white/80 ${isPriority ? 'text-base sm:text-lg' : 'text-[10px]'}`}
-                      >
-                        %
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    className={`font-bold text-white/60 uppercase tracking-widest truncate ${isPriority ? 'text-xs sm:text-sm' : 'text-[9px] sm:text-[10px]'}`}
-                  >
-                    {t(card.labelKey)}
-                  </p>
-                </div>
+            {/* Top row: icon + optional label */}
+            <div className="relative z-10 flex items-start justify-between">
+              <div
+                className={`
+                  ${card.iconBg} backdrop-blur-sm
+                  w-10 h-10 sm:w-11 sm:h-11
+                  rounded-xl flex items-center justify-center
+                  border border-white/20
+                  group-hover:scale-110 transition-transform duration-300
+                `}
+              >
+                <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white drop-shadow-sm" strokeWidth={2} />
               </div>
-
-              {/* Enhanced Hover glow effect */}
-              <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              {/* Subtle live badge */}
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-white/60 bg-white/10 rounded-full px-2 py-0.5 border border-white/15">
+                Live
+              </span>
             </div>
-          );
-        })}
+
+            {/* Bottom: value + label */}
+            <div className="relative z-10 mt-3">
+              <div className="flex items-baseline gap-1 flex-wrap">
+                <span className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none">
+                  {formatNumber(card.value, card.formatType)}
+                </span>
+                {card.formatType === 'currency' && (
+                  <span className="text-[10px] font-bold text-white/70 leading-none">MMK</span>
+                )}
+                {card.formatType === 'decimal' && (
+                  <span className="text-[10px] font-bold text-white/70 leading-none">%</span>
+                )}
+              </div>
+              <p className="text-[10px] sm:text-xs font-semibold text-white/65 uppercase tracking-widest mt-1 truncate">
+                {t(card.labelKey)}
+              </p>
+            </div>
+
+            {/* Hover shimmer */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-white/5 to-transparent pointer-events-none" />
+          </div>
+        );
+      })}
     </div>
   );
 }

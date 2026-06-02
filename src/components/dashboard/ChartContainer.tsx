@@ -29,16 +29,16 @@ import { aggregateByColumn, formatNumber } from '@/lib/kpi-calculator';
 import { useLanguage } from '@/context/LanguageContext';
 
 const COLORS = [
-  '#8b5cf6',
-  '#06b6d4',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#ec4899',
-  '#6366f1',
-  '#14b8a6',
-  '#84cc16',
-  '#f97316',
+  '#8b5cf6', // violet
+  '#10b981', // emerald
+  '#f59e0b', // amber
+  '#3b82f6', // blue
+  '#ef4444', // red
+  '#ec4899', // pink
+  '#06b6d4', // cyan
+  '#84cc16', // lime
+  '#f97316', // orange
+  '#6366f1', // indigo
 ];
 
 // Custom Premium Tooltip Component
@@ -511,26 +511,27 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
   }
 
   return (
-    <div className="space-y-4 lg:space-y-6">
-      {/* Report Type & Column Selectors - Blue themed card */}
-      <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-        <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-linear-to-r from-blue-50/50 to-cyan-50/30 dark:from-blue-950/20 dark:to-cyan-950/10">
-          <span className="font-medium flex items-center gap-2 text-blue-700 dark:text-blue-300 text-sm sm:text-base">
-            <span className="text-sm sm:text-base">📊</span>
+    <div className="space-y-4 lg:space-y-5">
+      {/* Report Config Card */}
+      <div className="dash-card overflow-hidden">
+        <div className="px-4 sm:px-5 py-3 border-b border-violet-100/60 dark:border-violet-900/20 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+            <span className="text-xs text-white font-bold">📊</span>
+          </div>
+          <span className="font-semibold text-slate-700 dark:text-slate-200 text-sm">
             Report Configuration
           </span>
         </div>
-        <div className="p-3 sm:p-4 bg-white dark:bg-slate-900/30">
-          {/* Stacked on mobile, row on desktop */}
+        <div className="p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:flex-wrap">
             {/* Report Type Presets */}
             {reportPresets.length > 1 && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
-                <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400">
+                <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
                   Report Type:
                 </span>
                 <Select value={reportType} onValueChange={handleReportTypeChange}>
-                  <SelectTrigger className="w-full sm:w-56 h-9 sm:h-10 text-sm bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800">
+                  <SelectTrigger className="w-full sm:w-56 h-9 sm:h-10 text-sm border-violet-200 dark:border-violet-800 focus:ring-violet-400">
                     <SelectValue placeholder="Select report type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -544,15 +545,13 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
               </div>
             )}
 
-            {/* Custom Column Selectors - only show for Custom Report */}
+            {/* Custom Column Selectors */}
             {reportType === 'custom' && (
               <>
                 <div className="hidden lg:block w-px h-8 bg-slate-200 dark:bg-slate-700" />
-
-                {/* Group by and Value in a row on mobile */}
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:gap-4">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                    <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
                       Group by:
                     </span>
                     <Select value={groupByColumn} onValueChange={setGroupByColumn}>
@@ -569,7 +568,7 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                     </Select>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                    <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
                       Value:
                     </span>
                     <Select value={valueColumn} onValueChange={setValueColumn}>
@@ -592,109 +591,156 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
         </div>
       </div>
 
-      {/* Charts - Top Row: Bar + Pie side by side */}
-      <div className="grid gap-4 lg:gap-6 lg:grid-cols-2">
+      {/* Charts — Side by Side */}
+      <div className="grid gap-4 lg:gap-5 lg:grid-cols-2">
         {/* Bar Chart */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">
-              Top 10 {groupByColumn} by {valueColumn}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="dash-card overflow-hidden">
+          <div className="px-5 py-4 border-b border-violet-100/60 dark:border-violet-900/20 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+                Top 10 {groupByColumn}
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">by {valueColumn}</p>
+            </div>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+          </div>
+          <div className="p-4 sm:p-5">
             <ResponsiveContainer width="100%" height={Math.max(280, chartData.length * 40)}>
-              <RechartsBarChart data={chartData} layout="vertical" margin={{ left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+              <RechartsBarChart data={chartData} layout="vertical" margin={{ left: 4, right: 12, top: 4, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.08)" horizontal={false} />
                 <XAxis
                   type="number"
-                  className="text-xs"
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
                   tickFormatter={v => formatNumber(v, 'number')}
                 />
                 <YAxis
                   dataKey="name"
                   type="category"
-                  className="text-xs"
-                  width={120}
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={115}
                   interval={0}
-                  tick={{ fontSize: 12 }}
                 />
                 <Tooltip
                   content={<CustomTooltip valueLabel={valueColumn} showCurrency={showCurrency} />}
-                  cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }}
+                  cursor={{ fill: 'rgba(139, 92, 246, 0.06)' }}
                 />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                <Bar dataKey="value" radius={[0, 6, 6, 0]} maxBarSize={24}>
                   {chartData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>
               </RechartsBarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Pie Chart */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Top 10 Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <RechartsPieChart>
-                <Pie
-                  data={chartData.slice(0, 10)}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-                  labelLine={false}
-                >
-                  {chartData.slice(0, 10).map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={<PieTooltip valueLabel={valueColumn} showCurrency={showCurrency} />}
-                />
-              </RechartsPieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {/* Donut / Pie Chart */}
+        <div className="dash-card overflow-hidden">
+          <div className="px-5 py-4 border-b border-violet-100/60 dark:border-violet-900/20 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Distribution</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Top 10 breakdown</p>
+            </div>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+            </div>
+          </div>
+          <div className="p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <ResponsiveContainer width="100%" height={240}>
+                <RechartsPieChart>
+                  <Pie
+                    data={chartData.slice(0, 10)}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={65}
+                    outerRadius={100}
+                    paddingAngle={3}
+                    dataKey="value"
+                    strokeWidth={0}
+                  >
+                    {chartData.slice(0, 10).map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={<PieTooltip valueLabel={valueColumn} showCurrency={showCurrency} />}
+                  />
+                  <Legend
+                    formatter={(value) => <span style={{ fontSize: 11, color: '#64748b' }}>{value}</span>}
+                    iconSize={9}
+                    iconType="circle"
+                  />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom Row: Over Time Chart - Full Width */}
+      {/* Over Time — Full Width */}
       {dateColumn && timeSeriesData.length > 0 && (
-        <Card className="mt-4 lg:mt-6">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <CardTitle className="text-base">Over Time (Last 12 Months)</CardTitle>
-              <Select value={timeSeriesValueColumn} onValueChange={setTimeSeriesValueColumn}>
-                <SelectTrigger className="w-auto min-w-40 h-8 text-xs">
-                  <SelectValue placeholder="Select value" />
-                </SelectTrigger>
-                <SelectContent>
-                  {moneyColumns.map(col => (
-                    <SelectItem key={col.name} value={col.name} className="text-xs">
-                      {col.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="dash-card overflow-hidden">
+          <div className="px-5 py-4 border-b border-violet-100/60 dark:border-violet-900/20 flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Trend Over Time</h3>
+                <p className="text-xs text-slate-400">Last 12 months</p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <Select value={timeSeriesValueColumn} onValueChange={setTimeSeriesValueColumn}>
+              <SelectTrigger className="w-auto min-w-40 h-8 text-xs border-violet-200 dark:border-violet-800">
+                <SelectValue placeholder="Select value" />
+              </SelectTrigger>
+              <SelectContent>
+                {moneyColumns.map(col => (
+                  <SelectItem key={col.name} value={col.name} className="text-xs">
+                    {col.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="p-4 sm:p-5">
+            <ResponsiveContainer width="100%" height={280}>
               <RechartsLineChart
                 data={timeSeriesData}
-                margin={{ left: 20, right: 20, top: 10, bottom: 10 }}
+                margin={{ left: 16, right: 16, top: 8, bottom: 8 }}
               >
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" />
+                <defs>
+                  <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.08)" />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <YAxis
-                  className="text-xs"
-                  width={100}
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={90}
                   tickFormatter={v => formatNumber(v, 'number')}
                 />
                 <Tooltip
@@ -705,20 +751,20 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                       accentColor="#8b5cf6"
                     />
                   }
-                  cursor={{ stroke: '#8b5cf6', strokeWidth: 2, strokeOpacity: 0.3 }}
+                  cursor={{ stroke: 'rgba(139,92,246,0.2)', strokeWidth: 2 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="value"
                   stroke="#8b5cf6"
-                  strokeWidth={2}
-                  dot={{ fill: '#8b5cf6', strokeWidth: 2 }}
-                  activeDot={{ r: 6 }}
+                  strokeWidth={2.5}
+                  dot={{ fill: '#8b5cf6', r: 4, strokeWidth: 2, stroke: 'white' }}
+                  activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }}
                 />
               </RechartsLineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

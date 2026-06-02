@@ -6,6 +6,7 @@ import { CsvProvider } from '@/context/CsvContext';
 import { FilterProvider } from '@/context/FilterContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,7 +38,9 @@ export default function RootLayout({
         <AuthProvider>
           <LanguageProvider>
             <CsvProvider>
-              <FilterProvider>{children}</FilterProvider>
+              <FilterProvider>
+                <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+              </FilterProvider>
             </CsvProvider>
           </LanguageProvider>
         </AuthProvider>
