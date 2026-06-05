@@ -382,58 +382,52 @@ export default function DatasetDashboardPage() {
 
   return (
     <div className="space-y-4 md:space-y-5">
-      {/* Header Bar */}
-      <div className="dash-card px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-0.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm shrink-0">
-              <LayoutGrid className="h-4 w-4 text-white" />
+      {/* Header + KPI Cards in one dash-card */}
+      <div className="dash-card overflow-hidden">
+        {/* Header Bar */}
+        <div className="px-4 sm:px-5 py-3.5 border-b border-violet-100/60 dark:border-violet-900/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-0.5">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm shrink-0">
+                <LayoutGrid className="h-3.5 w-3.5 text-white" />
+              </div>
+              <h1
+                className="text-base sm:text-lg font-bold truncate text-slate-800 dark:text-slate-100"
+                title={dataset.name}
+              >
+                {dataset.name}
+              </h1>
             </div>
-            <h1
-              className="text-lg sm:text-xl font-bold truncate text-slate-800 dark:text-slate-100"
-              title={dataset.name}
-            >
-              {dataset.name}
-            </h1>
+            <p className="text-xs text-slate-400 pl-9 truncate">
+              {csvData.fileName} &bull; {filteredData.length.toLocaleString()} {t('common.of')}{' '}
+              {csvData.totalRows.toLocaleString()} {t('common.rows')}
+            </p>
           </div>
-          <p className="text-xs text-slate-400 pl-10 truncate">
-            {csvData.fileName} &bull; {filteredData.length.toLocaleString()} {t('common.of')}{' '}
-            {csvData.totalRows.toLocaleString()} {t('common.rows')}
-          </p>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              className="gap-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all rounded-lg px-2 sm:px-3"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs font-medium">{t('common.export')}</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDeleteModal(true)}
+              className="gap-1 border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all rounded-lg px-2 sm:px-3"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs font-medium">Delete</span>
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowApiKeyModal(true)}
-            className="gap-1.5 border-violet-200 text-violet-600 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-300 transition-all rounded-xl"
-          >
-            <Key className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline text-xs font-medium">API Key</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExport}
-            className="gap-1.5 border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all rounded-xl"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline text-xs font-medium">{t('common.export')}</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowDeleteModal(true)}
-            className="gap-1.5 border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all rounded-xl"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline text-xs font-medium">Delete</span>
-          </Button>
-        </div>
-      </div>
 
-      {/* KPI Cards */}
-      {kpiData && <KpiCards kpiData={kpiData} />}
+        {/* KPI Cards */}
+        {kpiData && <KpiCards kpiData={kpiData} />}
+      </div>
 
       {/* AI Recommendations */}
       <AiRecommendations

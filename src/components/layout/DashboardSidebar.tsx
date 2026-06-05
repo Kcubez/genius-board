@@ -10,6 +10,7 @@ import {
   ChevronRight,
   FileSpreadsheet,
   Loader2,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -36,6 +37,12 @@ const mainNav = [
     href: '/dashboard/reports',
     icon: FolderOpen,
     exact: false,
+  },
+  {
+    label: 'Settings',
+    href: '/dashboard/settings',
+    icon: Settings,
+    exact: true,
   },
 ];
 

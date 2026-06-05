@@ -156,67 +156,69 @@ export function KpiCards({ kpiData }: KpiCardsProps) {
   const visibleCards = cards.filter(card => card.value > 0);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-      {visibleCards.map((card, index) => {
-        const Icon = card.icon;
-        return (
-          <div
-            key={index}
-            className={`
-              group relative overflow-hidden rounded-2xl p-4 sm:p-5
-              bg-gradient-to-br ${card.gradient}
-              shadow-lg hover:shadow-xl
-              hover:-translate-y-1
-              transition-all duration-300 ease-out
-              cursor-default min-h-[120px] sm:min-h-[130px] flex flex-col justify-between
-            `}
-            style={{ animationDelay: `${index * 60}ms` }}
-          >
-            {/* Decorative background shape */}
-            <DecorShape type={card.decorShape} color="white" />
+    <div className="p-3 sm:p-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        {visibleCards.map((card, index) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={index}
+              className={`
+                group relative overflow-hidden rounded-xl p-3 sm:p-4
+                bg-gradient-to-br ${card.gradient}
+                shadow-md hover:shadow-lg
+                hover:-translate-y-0.5
+                transition-all duration-200 ease-out
+                cursor-default min-h-[100px] sm:min-h-[110px] flex flex-col justify-between
+              `}
+              style={{ animationDelay: `${index * 60}ms` }}
+            >
+              {/* Decorative background shape */}
+              <DecorShape type={card.decorShape} color="white" />
 
-            {/* Top row: icon + optional label */}
-            <div className="relative z-10 flex items-start justify-between">
-              <div
-                className={`
-                  ${card.iconBg} backdrop-blur-sm
-                  w-10 h-10 sm:w-11 sm:h-11
-                  rounded-xl flex items-center justify-center
-                  border border-white/20
-                  group-hover:scale-110 transition-transform duration-300
-                `}
-              >
-                <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white drop-shadow-sm" strokeWidth={2} />
-              </div>
-              {/* Subtle live badge */}
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-white/60 bg-white/10 rounded-full px-2 py-0.5 border border-white/15">
-                Live
-              </span>
-            </div>
-
-            {/* Bottom: value + label */}
-            <div className="relative z-10 mt-3">
-              <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none">
-                  {formatNumber(card.value, card.formatType)}
+              {/* Top row: icon + optional label */}
+              <div className="relative z-10 flex items-start justify-between">
+                <div
+                  className={`
+                    ${card.iconBg} backdrop-blur-sm
+                    w-9 h-9 sm:w-10 sm:h-10
+                    rounded-lg flex items-center justify-center
+                    border border-white/20
+                    group-hover:scale-105 transition-transform duration-200
+                  `}
+                >
+                  <Icon className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-white drop-shadow-sm" strokeWidth={2} />
+                </div>
+                {/* Subtle live badge */}
+                <span className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wider text-white/60 bg-white/10 rounded-full px-1.5 py-0.5 border border-white/15">
+                  Live
                 </span>
-                {card.formatType === 'currency' && (
-                  <span className="text-[10px] font-bold text-white/70 leading-none">MMK</span>
-                )}
-                {card.formatType === 'decimal' && (
-                  <span className="text-[10px] font-bold text-white/70 leading-none">%</span>
-                )}
               </div>
-              <p className="text-[10px] sm:text-xs font-semibold text-white/65 uppercase tracking-widest mt-1 truncate">
-                {t(card.labelKey)}
-              </p>
-            </div>
 
-            {/* Hover shimmer */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-white/5 to-transparent pointer-events-none" />
-          </div>
-        );
-      })}
+              {/* Bottom: value + label */}
+              <div className="relative z-10 mt-2">
+                <div className="flex items-baseline gap-1 flex-wrap">
+                  <span className="text-lg sm:text-xl font-bold text-white tracking-tight leading-none">
+                    {formatNumber(card.value, card.formatType)}
+                  </span>
+                  {card.formatType === 'currency' && (
+                    <span className="text-[9px] sm:text-[10px] font-semibold text-white/70 leading-none">MMK</span>
+                  )}
+                  {card.formatType === 'decimal' && (
+                    <span className="text-[9px] sm:text-[10px] font-semibold text-white/70 leading-none">%</span>
+                  )}
+                </div>
+                <p className="text-[9px] sm:text-[10px] font-semibold text-white/65 uppercase tracking-widest mt-0.5 truncate">
+                  {t(card.labelKey)}
+                </p>
+              </div>
+
+              {/* Hover shimmer */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-white/5 to-transparent pointer-events-none" />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

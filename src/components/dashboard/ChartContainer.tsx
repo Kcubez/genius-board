@@ -15,6 +15,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  ComposedChart,
+  Area,
+  ReferenceLine,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -362,7 +365,10 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
 
   const chartData = useMemo(() => {
     if (!groupByColumn || !valueColumn || data.length === 0) return [];
-    return aggregateByColumn(data, groupByColumn, valueColumn, 'sum').slice(0, 10);
+    return aggregateByColumn(data, groupByColumn, valueColumn, 'sum').slice(0, 10).map((item, index) => ({
+      ...item,
+      fill: COLORS[index % COLORS.length],
+    }));
   }, [data, groupByColumn, valueColumn]);
 
   // Time series - aggregate by MONTH, show last 6 months
@@ -630,10 +636,17 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                 />
                 <Tooltip
                   content={<CustomTooltip valueLabel={valueColumn} showCurrency={showCurrency} />}
-                  cursor={{ fill: 'rgba(139, 92, 246, 0.06)' }}
+                  cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
                 />
-                <Bar dataKey="value" radius={[0, 6, 6, 0]} maxBarSize={24}>
-                  {chartData.map((_, index) => (
+                <Bar
+                  dataKey="value"
+                  radius={[0, 6, 6, 0]}
+                  maxBarSize={24}
+                  isAnimationActive={false}
+                  fillOpacity={1}
+                  activeBar={{ fillOpacity: 1, stroke: 'none' }}
+                >
+                  {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>
@@ -657,33 +670,62 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
             </div>
           </div>
           <div className="p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <ResponsiveContainer width="100%" height={240}>
-                <RechartsPieChart>
-                  <Pie
-                    data={chartData.slice(0, 10)}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={65}
-                    outerRadius={100}
-                    paddingAngle={3}
-                    dataKey="value"
-                    strokeWidth={0}
-                  >
-                    {chartData.slice(0, 10).map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    content={<PieTooltip valueLabel={valueColumn} showCurrency={showCurrency} />}
-                  />
-                  <Legend
-                    formatter={(value) => <span style={{ fontSize: 11, color: '#64748b' }}>{value}</span>}
-                    iconSize={9}
-                    iconType="circle"
-                  />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+            <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
+              <div className="flex-shrink-0 mx-auto lg:mx-0">
+                <ResponsiveContainer width={200} height={200}>
+                  <RechartsPieChart>
+                    <Pie
+                      data={chartData.slice(0, 10)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="value"
+                      strokeWidth={0}
+                    >
+                      {chartData.slice(0, 10).map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={<PieTooltip valueLabel={valueColumn} showCurrency={showCurrency} />}
+                    />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 min-w-0 space-y-1.5">
+                {chartData.slice(0, 10).map((entry, index) => {
+                  const totalValue = chartData.slice(0, 10).reduce((sum, d) => sum + (d.value as number), 0);
+                  const percent = ((entry.value as number) / totalValue) * 100;
+                  return (
+                    <div key={index} className="flex items-center gap-2.5 group cursor-pointer">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      />
+                      <span className="text-xs text-slate-600 dark:text-slate-400 truncate flex-shrink-0 w-20 lg:w-24" title={entry.name as string}>
+                        {entry.name}
+                      </span>
+                      <div className="flex-1 min-w-0 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${percent}%`,
+                            backgroundColor: COLORS[index % COLORS.length],
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400 w-10 text-right flex-shrink-0">
+                        {percent.toFixed(0)}%
+                      </span>
+                      <span className="text-xs text-slate-600 dark:text-slate-300 w-16 lg:w-20 text-right tabular-nums flex-shrink-0 truncate" title={formatNumber(entry.value as number, showCurrency ? 'currency' : 'number')}>
+                        {formatNumber(entry.value as number, showCurrency ? 'currency' : 'number')}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -719,17 +761,17 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
           </div>
           <div className="p-4 sm:p-5">
             <ResponsiveContainer width="100%" height={280}>
-              <RechartsLineChart
+              <ComposedChart
                 data={timeSeriesData}
                 margin={{ left: 16, right: 16, top: 8, bottom: 8 }}
               >
                 <defs>
-                  <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.08)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" vertical={false} />
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
@@ -740,8 +782,8 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
                   axisLine={false}
                   tickLine={false}
-                  width={90}
-                  tickFormatter={v => formatNumber(v, 'number')}
+                  width={80}
+                  tickFormatter={v => formatNumber(v, timeSeriesShowCurrency ? 'currency' : 'number')}
                 />
                 <Tooltip
                   content={
@@ -751,17 +793,42 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                       accentColor="#8b5cf6"
                     />
                   }
-                  cursor={{ stroke: 'rgba(139,92,246,0.2)', strokeWidth: 2 }}
+                  cursor={{ stroke: 'rgba(139,92,246,0.15)', strokeWidth: 40, strokeLinecap: 'round' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="transparent"
+                  fill="url(#areaGradient)"
+                  strokeWidth={0}
                 />
                 <Line
                   type="monotone"
                   dataKey="value"
                   stroke="#8b5cf6"
                   strokeWidth={2.5}
-                  dot={{ fill: '#8b5cf6', r: 4, strokeWidth: 2, stroke: 'white' }}
-                  activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 3 }}
                 />
-              </RechartsLineChart>
+                {timeSeriesData.length > 0 && (() => {
+                  const avg = timeSeriesData.reduce((sum, d) => sum + (d.value as number), 0) / timeSeriesData.length;
+                  return (
+                    <ReferenceLine
+                      y={avg}
+                      stroke="#8b5cf6"
+                      strokeDasharray="4 4"
+                      strokeOpacity={0.4}
+                      label={{
+                        value: 'Avg',
+                        position: 'right',
+                        fontSize: 10,
+                        fill: '#94a3b8',
+                        dx: -4,
+                      }}
+                    />
+                  );
+                })()}
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
