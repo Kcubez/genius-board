@@ -40,6 +40,7 @@ import { convertToCsv, downloadCsv } from '@/lib/csv-parser';
 import { CleaningResult } from '@/types/data-cleaner';
 import { toast } from 'sonner';
 import { KpiCards, AiRecommendations } from '@/components/dashboard';
+import { SheetSyncStatus } from '@/components/sheets/SheetSyncStatus';
 
 interface DataRow {
   id: string;
@@ -58,6 +59,14 @@ interface Dataset {
   recommendations?: Record<string, unknown> | null;
   lastModifiedAt?: string | null;
   lastAiGeneratedAt?: string | null;
+  source?: string;
+  sheetId?: string | null;
+  sheetUrl?: string | null;
+  sheetTabName?: string | null;
+  sheetTabGid?: string | null;
+  lastSyncedAt?: string | null;
+  syncInterval?: number;
+  syncEnabled?: boolean;
 }
 
 export default function DatasetDashboardPage() {
@@ -404,6 +413,15 @@ export default function DatasetDashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {dataset.source === 'google_sheets' && (
+              <SheetSyncStatus
+                datasetId={dataset.id}
+                syncEnabled={dataset.syncEnabled ?? false}
+                syncInterval={dataset.syncInterval ?? 60}
+                lastSyncedAt={dataset.lastSyncedAt ?? null}
+                onSyncComplete={refreshData}
+              />
+            )}
             <Button
               variant="outline"
               size="sm"

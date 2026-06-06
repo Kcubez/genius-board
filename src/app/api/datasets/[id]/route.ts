@@ -67,7 +67,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   }
 }
 
-// PATCH update dataset name (only if user owns it)
+// PATCH update dataset (name, sync settings) (only if user owns it)
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await verifyUserSession();
@@ -88,9 +88,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ success: false, error: 'Dataset not found' }, { status: 404 });
     }
 
+    const updateData: Record<string, any> = {};
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.syncEnabled !== undefined) updateData.syncEnabled = body.syncEnabled;
+    if (body.syncInterval !== undefined) updateData.syncInterval = body.syncInterval;
+
     const dataset = await prisma.dataset.update({
       where: { id },
-      data: { name: body.name },
+      data: updateData,
     });
 
     return NextResponse.json({ success: true, dataset });

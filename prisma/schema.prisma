@@ -62,12 +62,23 @@ model Dataset {
   lastAiGeneratedAt   DateTime? // Updated whenever AI recommendations are generated
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
+
+  // Google Sheets integration fields
+  source              String    @default("upload")  // "upload" | "google_sheets"
+  sheetId             String?   // Google Spreadsheet ID (extracted from URL)
+  sheetUrl            String?   // Original Google Sheet URL
+  sheetTabName        String?   // Selected tab/sheet name
+  sheetTabGid         String?   // Tab GID (numeric ID from sheet URL)
+  lastSyncedAt        DateTime? // Last successful sync timestamp
+  syncInterval        Int       @default(10)  // Sync interval in seconds (default 10s for near-real-time)
+  syncEnabled         Boolean   @default(true) // Enable/disable auto-sync
   
   // Relation to data rows
   rows                DataRow[]
   
   @@index([userId])
   @@index([createdAt])
+  @@index([source])
 }
 
 // NEW: DataRow - individual rows of data (stored as JSONB)
