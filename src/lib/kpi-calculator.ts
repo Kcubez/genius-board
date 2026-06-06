@@ -39,9 +39,15 @@ export function detectKpiColumns(columns: ColumnInfo[]): KpiConfig {
     columns.find(col => col.type === 'date')?.name ||
     null;
 
-  // Fallback: if no sales column found, use the first number column
+  // Fallback: if no sales column found, use the first number column (excluding phone, contact, mobile, tel, no, or id)
   if (!config.salesColumn) {
-    config.salesColumn = columns.find(col => col.type === 'number')?.name || null;
+    config.salesColumn = columns.find(col => {
+      if (col.type !== 'number') return false;
+      const nameLower = col.name.toLowerCase();
+      return !['phone', 'contact', 'mobile', 'tel', 'no', 'number', 'id'].some(
+        hint => nameLower.includes(hint)
+      );
+    })?.name || null;
   }
 
   return config;

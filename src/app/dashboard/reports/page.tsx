@@ -24,6 +24,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext';
 import { parseCsv } from '@/lib/csv-parser';
 import { toast } from 'sonner';
+import { GoogleSheetsConnector } from '@/components/sheets/GoogleSheetsConnector';
 
 interface Dataset {
   id: string;
@@ -32,6 +33,7 @@ interface Dataset {
   rowCount: number;
   createdAt: string;
   columns: { name: string; type: string }[];
+  source?: string;
 }
 
 export default function ReportsPage() {
@@ -42,6 +44,7 @@ export default function ReportsPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [sheetsOpen, setSheetsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; dataset: Dataset | null }>({
     open: false,
     dataset: null,
@@ -356,14 +359,27 @@ export default function ReportsPage() {
             </p>
           </div>
         </div>
-        <Button
-          onClick={() => setShowUploadModal(true)}
-          size="lg"
-          className="gap-2 bg-violet-600 hover:bg-violet-700"
-        >
-          <Plus className="h-5 w-5" />
-          New Report
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowUploadModal(true)}
+            size="lg"
+            className="gap-2 bg-violet-600 hover:bg-violet-700"
+          >
+            <Plus className="h-5 w-5" />
+            New Report
+          </Button>
+          <Button
+            onClick={() => setSheetsOpen(true)}
+            size="lg"
+            variant="outline"
+            className="gap-2 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300 dark:border-green-950 dark:hover:bg-green-950/20"
+          >
+            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm0-4H7v-2h5v2zm0-4H7V7h5v2zm5 8h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V7h3v2z"/>
+            </svg>
+            Google Sheet
+          </Button>
+        </div>
       </div>
 
       {/* Upload Modal */}
@@ -437,11 +453,20 @@ export default function ReportsPage() {
                 {dataset.name}
               </h3>
 
-              <div className="flex items-center gap-2 text-sm">
-                <span className="px-2 py-1 rounded-full bg-violet-50 text-violet-600 font-medium">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="px-2 py-1 rounded-full bg-violet-50 text-violet-600 font-medium text-xs">
                   {dataset.rowCount.toLocaleString()} rows
                 </span>
-                <span className="text-muted-foreground">
+                {dataset.source === 'google_sheets' ? (
+                  <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200/35 dark:border-green-900/25 font-medium text-xs">
+                    Google Sheets
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border border-blue-200/35 dark:border-blue-900/25 font-medium text-xs">
+                    File Upload
+                  </span>
+                )}
+                <span className="text-muted-foreground text-xs ml-auto">
                   {new Date(dataset.createdAt).toLocaleDateString('en-GB', {
                     day: '2-digit',
                     month: 'short',
@@ -502,6 +527,7 @@ export default function ReportsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <GoogleSheetsConnector open={sheetsOpen} onOpenChange={setSheetsOpen} />
     </div>
   );
 }

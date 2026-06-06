@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/context/LanguageContext';
 import { parseCsv } from '@/lib/csv-parser';
 import { toast } from 'sonner';
+import { GoogleSheetsConnector } from '@/components/sheets/GoogleSheetsConnector';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { t, language } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [sheetsOpen, setSheetsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
@@ -85,7 +87,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">Upload a file to see your data insights</p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -114,6 +116,18 @@ export default function DashboardPage() {
                 Upload File
               </>
             )}
+          </Button>
+          <Button
+            onClick={() => setSheetsOpen(true)}
+            size="lg"
+            variant="outline"
+            className="gap-2 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300 dark:border-green-950 dark:hover:bg-green-950/20"
+            disabled={uploading}
+          >
+            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm0-4H7v-2h5v2zm0-4H7V7h5v2zm5 8h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V7h3v2z"/>
+            </svg>
+            {t('sheets.title')}
           </Button>
         </div>
       </div>
@@ -192,6 +206,7 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mt-2">CSV or Excel files</p>
         </div>
       </div>
+      <GoogleSheetsConnector open={sheetsOpen} onOpenChange={setSheetsOpen} />
     </div>
   );
 }

@@ -280,7 +280,6 @@ export default function LoginPage() {
                       if (errors.geminiKey) setErrors({ ...errors, geminiKey: undefined });
                     }}
                     className={`pl-10 h-11 rounded-xl border-slate-200 focus:ring-violet-500 ${errors.geminiKey ? 'border-red-500' : ''}`}
-                    required
                   />
                 </div>
                 {errors.geminiKey && (
