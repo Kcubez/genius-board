@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 import { verifyUserSession } from '@/lib/user-auth';
+import { extractSpreadsheetId, fetchSheetData } from '@/lib/google-sheets';
 import { buildDataSummary } from '@/lib/ai-recommendations';
 import { ColumnInfo } from '@/types/csv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -70,43 +70,22 @@ async function generateAndSaveAllRecommendations(
   }
 }
 
-export async function GET() {
-  try {
-    const session = await verifyUserSession();
-    if (!session) return NextResponse.json({ success: false }, { status: 401 });
-    const datasets = await prisma.dataset.findMany({
-      where: { userId: session.userId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        fileName: true,
-        rowCount: true,
-        createdAt: true,
-        columns: true,
-        recommendations: true,
-        source: true,
-        sheetId: true,
-        sheetUrl: true,
-        sheetTabName: true,
-        lastSyncedAt: true,
-        syncInterval: true,
-        syncEnabled: true,
-      },
-    });
-    return NextResponse.json({ success: true, datasets });
-  } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 });
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const session = await verifyUserSession();
-    if (!session) return NextResponse.json({ success: false }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await request.json();
-    const { name, fileName, columns, rows, chunkedUpload, totalRows } = body;
+    const { url, tabName, tabGid, datasetName, syncInterval = 10, syncEnabled = true } = body;
+
+    if (!url || !tabName || !datasetName) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields: url, tabName, datasetName' },
+        { status: 400 }
+      );
+    }
 
     // 🔒 Limit: Only 2 files per user
     const existingCount = await prisma.dataset.count({
@@ -124,33 +103,78 @@ export async function POST(request: Request) {
       );
     }
 
+    const spreadsheetId = extractSpreadsheetId(url);
+    if (!spreadsheetId) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid Google Sheets URL. Please provide a valid link.' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch ALL rows from the sheet
+    const result = await fetchSheetData(spreadsheetId, tabName);
+
+    if (!result.success || !result.data) {
+      const statusMap: Record<string, number> = {
+        AUTH_ERROR: 403,
+        NOT_FOUND: 404,
+        RATE_LIMIT: 429,
+        EMPTY_SHEET: 422,
+        API_KEY_MISSING: 500,
+        NETWORK_ERROR: 502,
+      };
+      const status = result.errorCode ? statusMap[result.errorCode] || 500 : 500;
+      return NextResponse.json(
+        { success: false, error: result.error, errorCode: result.errorCode },
+        { status }
+      );
+    }
+
+    const { columns, rows, totalRows } = result.data;
+
+    // Create dataset with Google Sheets metadata
     const dataset = await prisma.dataset.create({
       data: {
         userId: session.userId,
-        name,
-        fileName,
-        columns,
-        rowCount: chunkedUpload ? totalRows || 0 : rows.length,
+        name: datasetName,
+        fileName: `${tabName} (Google Sheets)`,
+        columns: columns as any,
+        rowCount: totalRows,
+        source: 'google_sheets',
+        sheetId: spreadsheetId,
+        sheetUrl: url,
+        sheetTabName: tabName,
+        sheetTabGid: tabGid !== undefined && tabGid !== null ? String(tabGid) : null,
+        syncInterval,
+        syncEnabled,
+        lastSyncedAt: new Date(),
       },
     });
 
-    if (!chunkedUpload && rows) {
-      const BATCH_SIZE = 500;
-      for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-        const batch = rows.slice(i, i + BATCH_SIZE);
-        await prisma.dataRow.createMany({
-          data: batch.map((row: any, index: number) => ({
-            datasetId: dataset.id,
-            rowIndex: i + index,
-            data: row as any,
-          })),
-        });
-      }
-      generateAndSaveAllRecommendations(dataset.id, rows, columns).catch(err => console.error(err));
+    // Insert data rows in batches of 500
+    const BATCH_SIZE = 500;
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      await prisma.dataRow.createMany({
+        data: batch.map((row: any, index: number) => ({
+          datasetId: dataset.id,
+          rowIndex: i + index,
+          data: row as any,
+        })),
+      });
     }
+
+    // Generate AI recommendations in the background
+    generateAndSaveAllRecommendations(dataset.id, rows, columns).catch(err =>
+      console.error('[Sheets Import] AI recommendation error:', err)
+    );
 
     return NextResponse.json({ success: true, dataset });
   } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 });
+    console.error('[API] POST /api/sheets/import error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

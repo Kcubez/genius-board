@@ -104,7 +104,13 @@ export function buildDataSummary(
   const paymentCol = findColumnByHints(columns, PAYMENT_HINTS);
   const salesCol =
     findColumnByHints(columns, SALES_HINTS, 'number') ||
-    columns.find(c => c.type === 'number')?.name ||
+    columns.find(c => {
+      if (c.type !== 'number') return false;
+      const nameLower = c.name.toLowerCase();
+      return !['phone', 'contact', 'mobile', 'tel', 'no', 'number', 'id'].some(
+        hint => nameLower.includes(hint)
+      );
+    })?.name ||
     null;
   const quantityCol = findColumnByHints(columns, QUANTITY_HINTS, 'number');
   const dateCol =
