@@ -285,7 +285,9 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
         const valueName = numCol.name;
 
         // Create a unique key for the preset
-        const presetKey = `${groupByName.toLowerCase().replace(/\s+/g, '-')}-by-${valueName.toLowerCase().replace(/\s+/g, '-')}`;
+        const presetKey = `${groupByName.toLowerCase().replace(/\s+/g, '-')}-by-${valueName
+          .toLowerCase()
+          .replace(/\s+/g, '-')}`;
 
         // Create a readable label
         const label = `${valueName} by ${groupByName}`;
@@ -365,10 +367,12 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
 
   const chartData = useMemo(() => {
     if (!groupByColumn || !valueColumn || data.length === 0) return [];
-    return aggregateByColumn(data, groupByColumn, valueColumn, 'sum').slice(0, 10).map((item, index) => ({
-      ...item,
-      fill: COLORS[index % COLORS.length],
-    }));
+    return aggregateByColumn(data, groupByColumn, valueColumn, 'sum')
+      .slice(0, 10)
+      .map((item, index) => ({
+        ...item,
+        fill: COLORS[index % COLORS.length],
+      }));
   }, [data, groupByColumn, valueColumn]);
 
   // Time series - aggregate by MONTH, show last 6 months
@@ -521,7 +525,7 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
       {/* Report Config Card */}
       <div className="dash-card overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-violet-100/60 dark:border-violet-900/20 flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+          <div className="w-7 h-7 rounded-lg bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
             <span className="text-xs text-white font-bold">📊</span>
           </div>
           <span className="font-semibold text-slate-700 dark:text-slate-200 text-sm">
@@ -608,16 +612,34 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">by {valueColumn}</p>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
               </svg>
             </div>
           </div>
           <div className="p-4 sm:p-5">
             <ResponsiveContainer width="100%" height={Math.max(280, chartData.length * 40)}>
-              <RechartsBarChart data={chartData} layout="vertical" margin={{ left: 4, right: 12, top: 4, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.08)" horizontal={false} />
+              <RechartsBarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ left: 4, right: 12, top: 4, bottom: 4 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(99,102,241,0.08)"
+                  horizontal={false}
+                />
                 <XAxis
                   type="number"
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
@@ -659,19 +681,35 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
         <div className="dash-card overflow-hidden">
           <div className="px-5 py-4 border-b border-violet-100/60 dark:border-violet-900/20 flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Distribution</h3>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+                Distribution
+              </h3>
               <p className="text-xs text-slate-400 mt-0.5">Top 10 breakdown</p>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
+                />
               </svg>
             </div>
           </div>
           <div className="p-4 sm:p-5">
             <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
-              <div className="flex-shrink-0 mx-auto lg:mx-0">
+              <div className="shrink-0 mx-auto lg:mx-0">
                 <ResponsiveContainer width={200} height={200}>
                   <RechartsPieChart>
                     <Pie
@@ -694,37 +732,70 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                   </RechartsPieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex-1 min-w-0 space-y-1.5">
-                {chartData.slice(0, 10).map((entry, index) => {
-                  const totalValue = chartData.slice(0, 10).reduce((sum, d) => sum + (d.value as number), 0);
-                  const percent = ((entry.value as number) / totalValue) * 100;
-                  return (
-                    <div key={index} className="flex items-center gap-2.5 group cursor-pointer">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                      />
-                      <span className="text-xs text-slate-600 dark:text-slate-400 truncate flex-shrink-0 w-20 lg:w-24" title={entry.name as string}>
-                        {entry.name}
-                      </span>
-                      <div className="flex-1 min-w-0 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="flex-1 min-w-0 flex flex-col">
+                {/* Column headers */}
+                <div className="flex items-center gap-2 px-2 pb-1.5 mb-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="w-2.5 shrink-0" />
+                  <span
+                    className="flex-1 min-w-0 text-[10px] font-semibold uppercase tracking-wider text-slate-400 truncate"
+                    title={groupByColumn}
+                  >
+                    {groupByColumn}
+                  </span>
+                  <span
+                    className="w-16 lg:w-20 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 truncate"
+                    title={valueColumn}
+                  >
+                    {valueColumn}
+                  </span>
+                  <span className="w-12 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Share
+                  </span>
+                </div>
+
+                {/* Rows */}
+                <div className="space-y-0.5">
+                  {(() => {
+                    const top10 = chartData.slice(0, 10);
+                    const totalValue = top10.reduce((sum, d) => sum + (d.value as number), 0) || 1;
+                    return top10.map((entry, index) => {
+                      const value = entry.value as number;
+                      const percent = (value / totalValue) * 100;
+                      const color = COLORS[index % COLORS.length];
+                      return (
                         <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${percent}%`,
-                            backgroundColor: COLORS[index % COLORS.length],
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400 w-10 text-right flex-shrink-0">
-                        {percent.toFixed(0)}%
-                      </span>
-                      <span className="text-xs text-slate-600 dark:text-slate-300 w-16 lg:w-20 text-right tabular-nums flex-shrink-0 truncate" title={formatNumber(entry.value as number, showCurrency ? 'currency' : 'number')}>
-                        {formatNumber(entry.value as number, showCurrency ? 'currency' : 'number')}
-                      </span>
-                    </div>
-                  );
-                })}
+                          key={index}
+                          className="relative flex items-center gap-2 px-2 py-1.5 rounded-md overflow-hidden group cursor-pointer"
+                        >
+                          {/* Subtle share-fill background */}
+                          <div
+                            className="absolute inset-y-0 left-0 opacity-10 group-hover:opacity-20 transition-opacity"
+                            style={{ width: `${percent}%`, backgroundColor: color }}
+                          />
+                          <div
+                            className="relative w-2.5 h-2.5 rounded-full shrink-0 transition-transform group-hover:scale-125"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span
+                            className="relative flex-1 min-w-0 text-xs text-slate-600 dark:text-slate-300 truncate"
+                            title={entry.name as string}
+                          >
+                            {entry.name}
+                          </span>
+                          <span
+                            className="relative w-16 lg:w-20 text-right text-xs font-semibold text-slate-700 dark:text-slate-200 tabular-nums"
+                            title={formatNumber(value, showCurrency ? 'currency' : 'number')}
+                          >
+                            {formatNumber(value, showCurrency ? 'currency' : 'number')}
+                          </span>
+                          <span className="relative w-12 text-right text-[11px] font-medium text-slate-400 tabular-nums">
+                            {percent.toFixed(0)}%
+                          </span>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
               </div>
             </div>
           </div>
@@ -736,13 +807,25 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
         <div className="dash-card overflow-hidden">
           <div className="px-5 py-4 border-b border-violet-100/60 dark:border-violet-900/20 flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+                  />
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Trend Over Time</h3>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+                  Trend Over Time
+                </h3>
                 <p className="text-xs text-slate-400">Last 12 months</p>
               </div>
             </div>
@@ -771,7 +854,11 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                     <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(99,102,241,0.06)"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
@@ -783,7 +870,9 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                   axisLine={false}
                   tickLine={false}
                   width={80}
-                  tickFormatter={v => formatNumber(v, timeSeriesShowCurrency ? 'currency' : 'number')}
+                  tickFormatter={v =>
+                    formatNumber(v, timeSeriesShowCurrency ? 'currency' : 'number')
+                  }
                 />
                 <Tooltip
                   content={
@@ -793,7 +882,11 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                       accentColor="#8b5cf6"
                     />
                   }
-                  cursor={{ stroke: 'rgba(139,92,246,0.15)', strokeWidth: 40, strokeLinecap: 'round' }}
+                  cursor={{
+                    stroke: 'rgba(139,92,246,0.15)',
+                    strokeWidth: 40,
+                    strokeLinecap: 'round',
+                  }}
                 />
                 <Area
                   type="monotone"
@@ -810,24 +903,27 @@ export function ChartContainer({ data, columns, isLoading = false }: ChartContai
                   dot={false}
                   activeDot={{ r: 6, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 3 }}
                 />
-                {timeSeriesData.length > 0 && (() => {
-                  const avg = timeSeriesData.reduce((sum, d) => sum + (d.value as number), 0) / timeSeriesData.length;
-                  return (
-                    <ReferenceLine
-                      y={avg}
-                      stroke="#8b5cf6"
-                      strokeDasharray="4 4"
-                      strokeOpacity={0.4}
-                      label={{
-                        value: 'Avg',
-                        position: 'right',
-                        fontSize: 10,
-                        fill: '#94a3b8',
-                        dx: -4,
-                      }}
-                    />
-                  );
-                })()}
+                {timeSeriesData.length > 0 &&
+                  (() => {
+                    const avg =
+                      timeSeriesData.reduce((sum, d) => sum + (d.value as number), 0) /
+                      timeSeriesData.length;
+                    return (
+                      <ReferenceLine
+                        y={avg}
+                        stroke="#8b5cf6"
+                        strokeDasharray="4 4"
+                        strokeOpacity={0.4}
+                        label={{
+                          value: 'Avg',
+                          position: 'right',
+                          fontSize: 10,
+                          fill: '#94a3b8',
+                          dx: -4,
+                        }}
+                      />
+                    );
+                  })()}
               </ComposedChart>
             </ResponsiveContainer>
           </div>

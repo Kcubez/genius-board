@@ -1,317 +1,81 @@
-# CLAUDE.md - Genius Board
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-This is **Genius Board**, a sales data analysis dashboard built with Next.js that allows users to upload CSV files and analyze sales data with dynamic filtering, KPIs, and visualizations. The dashboard supports bilingual UI (Myanmar/English).
+**Genius Board** is a sales-data analysis dashboard. Users log in, upload CSV/Excel files, and get auto-detected columns, dynamic filters, KPIs, charts, a data cleaner, and AI-generated business recommendations (Gemini). UI is bilingual (English / Myanmar). Data is persisted per-user in PostgreSQL; there is also an admin panel for user and feedback management.
 
----
-
-## Tech Stack
-
-- **Framework:** Next.js 14+ (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **UI Components:** shadcn/ui
-- **Database:** Supabase (PostgreSQL)
-- **ORM:** Prisma
-
----
-
-## Project Structure
-
-```
-genius-board/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── layout.tsx          # Root layout
-│   │   ├── page.tsx            # Home page (Upload)
-│   │   ├── dashboard/          # Dashboard routes
-│   │   │   └── page.tsx
-│   │   └── api/                # API routes
-│   │       ├── upload/         # CSV upload endpoint
-│   │       ├── analyze/        # Data analysis endpoint
-│   │       └── export/         # Export endpoint
-│   ├── components/
-│   │   ├── ui/                 # shadcn/ui components
-│   │   ├── csv/                # CSV-related components
-│   │   │   ├── CsvUploader.tsx
-│   │   │   ├── CsvTable.tsx
-│   │   │   └── CsvPreview.tsx
-│   │   ├── dashboard/          # Dashboard components
-│   │   │   ├── KpiCards.tsx
-│   │   │   ├── ChartContainer.tsx
-│   │   │   └── FilterPanel.tsx
-│   │   ├── filters/            # Filter components
-│   │   │   ├── DateRangeFilter.tsx
-│   │   │   ├── TextFilter.tsx
-│   │   │   ├── NumberFilter.tsx
-│   │   │   └── CategoryFilter.tsx
-│   │   └── charts/             # Chart components
-│   │       ├── LineChart.tsx
-│   │       ├── BarChart.tsx
-│   │       └── PieChart.tsx
-│   ├── lib/
-│   │   ├── prisma.ts           # Prisma client
-│   │   ├── supabase.ts         # Supabase client
-│   │   ├── csv-parser.ts       # CSV parsing utilities
-│   │   ├── data-detector.ts    # Column type detection
-│   │   └── i18n.ts             # Internationalization
-│   ├── hooks/
-│   │   ├── useCsvData.ts       # CSV data hook
-│   │   ├── useFilters.ts       # Filter state hook
-│   │   └── useLanguage.ts      # Language switch hook
-│   ├── types/
-│   │   ├── csv.ts              # CSV-related types
-│   │   ├── filter.ts           # Filter types
-│   │   └── dashboard.ts        # Dashboard types
-│   ├── context/
-│   │   ├── CsvContext.tsx      # CSV data context
-│   │   ├── FilterContext.tsx   # Filter context
-│   │   └── LanguageContext.tsx # Language context
-│   └── locales/
-│       ├── en.json             # English translations
-│       └── mm.json             # Myanmar translations
-├── prisma/
-│   └── schema.prisma           # Database schema
-├── public/
-│   └── locales/                # Static locale files
-├── PRD.md                      # Product Requirements
-├── CLAUDE.md                   # This file
-├── package.json
-├── tailwind.config.ts
-├── next.config.js
-└── tsconfig.json
-```
-
----
-
-## Implementation Plan
-
-### Phase 1: Project Setup
-
-1. Initialize Next.js with TypeScript
-2. Configure Tailwind CSS
-3. Install and configure shadcn/ui
-4. Set up Prisma with Supabase
-5. Create base layout and routing
-
-### Phase 2: CSV Module
-
-1. Build drag-and-drop CSV uploader
-2. Implement CSV parsing with Papa Parse
-3. Create column type auto-detection
-4. Build raw data table with pagination
-
-### Phase 3: Filtering System
-
-1. Create dynamic filter generation based on column types
-2. Implement date range picker
-3. Build text/number/category filters
-4. Connect filters to data state
-
-### Phase 4: Dashboard & KPIs
-
-1. Create KPI calculation functions
-2. Build KPI cards component
-3. Implement real-time KPI updates
-
-### Phase 5: Visualizations
-
-1. Integrate Recharts library
-2. Build Line, Bar, Pie charts
-3. Add column selector for charts
-4. Connect charts to filtered data
-
-### Phase 6: Language Support
-
-1. Set up i18n context
-2. Create translation files (EN/MM)
-3. Build language toggle component
-
-### Phase 7: Export Features
-
-1. Implement filtered CSV export
-2. Add PDF/Image export (optional)
-
-### Phase 8: Data Cleaning (NEW)
-
-1. Analyze data for quality issues
-   - Duplicate row detection
-   - Missing value detection
-   - Whitespace issues
-   - Case inconsistencies
-2. Build DataCleanerModal component
-   - Multi-step wizard (Analyze → Configure → Preview → Result)
-   - Visual issue indicators with severity badges
-3. Implement cleaning operations
-   - Remove duplicates
-   - Remove empty rows
-   - Trim whitespace
-   - Normalize text case (lowercase/uppercase/titlecase)
-   - Handle missing values (remove row, fill with average/median/mode/custom)
-4. API integration for saving cleaned data
-5. Bilingual support (EN/MM)
-
----
-
-## Key Commands
+## Commands
 
 ```bash
-# Development
-npm run dev
+npm run dev          # Start dev server (Next.js, http://localhost:3000)
+npm run build        # prisma generate && next build
+npm run start        # Run production build
+npm run lint         # ESLint (eslint-config-next, flat config)
 
-# Build
-npm run build
+npx prisma generate  # Regenerate client after schema.prisma changes
+npx prisma db push   # Push schema to the database (no migrations folder is used in practice)
+npx prisma studio    # Inspect/edit DB
 
-# Prisma
-npx prisma generate
-npx prisma db push
-npx prisma studio
-
-# Add shadcn components
-npx shadcn@latest add button
-npx shadcn@latest add table
-npx shadcn@latest add card
+# Create/reset the single admin account (admin@gmail.com / admin@123):
+npx ts-node --compiler-options '{"module":"CommonJS"}' scripts/setup-admin.ts
 ```
 
----
+There is no test runner wired into `package.json` (the `coverage/` directory is a stale artifact). Verify changes via `npm run lint` and `npm run build`.
 
-## Database Schema (Prisma)
+## Architecture
 
-```prisma
-// For session-based data storage (optional persistence)
+### Stack
+Next.js 16 (App Router, React 19, **React Compiler enabled** via `next.config.ts`) · TypeScript · Tailwind CSS v4 · shadcn/ui (new-york style) · Prisma 7 with the `@prisma/adapter-pg` driver adapter over a `pg` Pool · PostgreSQL (Supabase) · Recharts · PapaParse · `xlsx`.
 
-model UploadSession {
-  id        String   @id @default(cuid())
-  fileName  String
-  columns   Json     // Column metadata
-  data      Json     // CSV data
-  createdAt DateTime @default(now())
-  expiresAt DateTime // Auto-cleanup
-}
+### Authentication (two separate JWT systems)
+There are **two independent auth flows**, each with its own cookie, secret, and verifier — do not conflate them:
 
-model SavedDashboard {
-  id        String   @id @default(cuid())
-  name      String
-  filters   Json     // Saved filter state
-  chartConfig Json   // Chart configurations
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-```
+- **User auth:** `user_token` cookie, `USER_JWT_SECRET`, verified by `verifyUserSession()` in [src/lib/user-auth.ts](src/lib/user-auth.ts). Also enforces `isActive` and the `startDate`/`endDate` validity window. Used by `/dashboard` and most `/api/*` routes.
+- **Admin auth:** `admin_token` cookie, `ADMIN_JWT_SECRET`, verified by `verifyAdminSession()` in [src/lib/admin-auth.ts](src/lib/admin-auth.ts). Used by `/admin/*` pages and `/api/admin/*` routes.
 
----
+Passwords are bcrypt-hashed. JWTs are signed/verified with `jose`. There is exactly one admin account, created by the setup script.
 
-## Key Dependencies
+[src/proxy.ts](src/proxy.ts) is the Next.js 16 middleware (renamed from `middleware.ts` to `proxy.ts`). It only guards **page** navigation: it redirects unauthenticated users away from `/dashboard` to `/login`, and logged-in users away from `/login`. It deliberately **skips `/api` and `/admin`** — those routes verify their own sessions in-handler. So every API route must call `verifyUserSession()` / `verifyAdminSession()` itself; do not assume the proxy protected it.
 
-```json
-{
-  "dependencies": {
-    "next": "^14.0.0",
-    "react": "^18.0.0",
-    "typescript": "^5.0.0",
-    "@prisma/client": "^5.0.0",
-    "@supabase/supabase-js": "^2.0.0",
-    "papaparse": "^5.4.0",
-    "recharts": "^2.10.0",
-    "date-fns": "^3.0.0",
-    "@tanstack/react-table": "^8.0.0",
-    "lucide-react": "^0.300.0"
-  }
-}
-```
+### Data model (Prisma — [prisma/schema.prisma](prisma/schema.prisma))
+- `User` — auth + per-user `geminiKey` + active/date-window fields.
+- `Dataset` — one uploaded file: `columns` (JSON column metadata), `rowCount`, cached `recommendations` (JSON `{ en: [...], mm: [...] }`), `lastModifiedAt`, `lastAiGeneratedAt`. Scoped by `userId`.
+- `DataRow` — one row per record, payload in a JSON `data` field, ordered by `rowIndex`, cascade-deleted with its `Dataset`. **Rows are stored as JSONB, not normalized columns** — querying/aggregation happens in app code, not SQL.
+- `Feedback` — user feedback/feature requests with admin response + status.
+- `SavedDashboard`, `UploadSession` — legacy/optional, not central to the current flow.
 
----
+All DB access goes through the singleton in [src/lib/prisma.ts](src/lib/prisma.ts) (cached on `globalThis` in dev to survive HMR).
 
-## Data Flow
+### Upload flow (chunked) — [src/hooks/useDataset.ts](src/hooks/useDataset.ts)
+CSV/Excel is parsed **client-side** ([src/lib/csv-parser.ts](src/lib/csv-parser.ts)), then saved:
+- ≤ 200 rows → single `POST /api/datasets`.
+- \> 200 rows → create empty dataset, then `POST /api/datasets/chunk` in 200-row batches with `startIndex` + `isLastChunk`. On any chunk failure the partial dataset is DELETEd to clean up. (Chunk size + the `maxDuration: 10` limits in [vercel.json](vercel.json) exist because of Vercel Hobby function timeouts.)
 
-```
-CSV Upload → Parse → Detect Types → Store in Context
-     ↓
-Generate Filters (based on types)
-     ↓
-Apply Filters → Filter Data
-     ↓
-Update: Table, KPIs, Charts (all in sync)
-```
+When the last chunk lands, the chunk route fires a **background** Gemini call (`generateAndSaveAllRecommendationsForDataset`) that pre-computes EN+MM recommendations and caches them on the dataset — not awaited, so upload returns immediately.
 
----
+### AI recommendations (Gemini)
+Two paths produce the cached `{ en, mm }` recommendations object:
+1. Background pre-generation on upload (chunk route, uses server `GEMINI_API_KEY`).
+2. On-demand `POST /api/datasets/recommendations`, which prefers the **user's own** `geminiKey` over the env key.
 
-## Critical Requirements
+The data sent to Gemini is **not raw rows** — [src/lib/ai-recommendations.ts](src/lib/ai-recommendations.ts) `buildDataSummary()` first detects semantic columns by name hints (region/product/customer/payment/date/sales/quantity/salesperson) and produces a compact aggregated markdown summary (totals, breakdowns, top-N). Model: `gemini-2.5-flash`. When editing prompts, keep the strict JSON contract: `type` and `priority` must be identical across `en`/`mm`.
 
-1. **Data Consistency**: Table, KPIs, and Charts MUST always show the same filtered data
-2. **Dynamic Filters**: Filters must be auto-generated based on CSV column types
-3. **Column Priority**: Selected filter column should appear first in table
-4. **No Persistence (v1)**: All data is session-based, no permanent storage
-5. **Bilingual**: Support Myanmar and English UI
+### Client state & data sync
+React Contexts in [src/context/](src/context/): `CsvContext` (in-memory parsed CSV), `FilterContext`, `LanguageContext` (loads `src/locales/{en,mm}.json`, key `t()` lookup), `AuthContext`. The core invariant from the product spec: **Table, KPIs, and Charts must always reflect the same filtered dataset** — keep filtered data derived from base data + active filters rather than caching separate copies.
 
----
+Column-type detection ([src/lib/csv-parser.ts](src/lib/csv-parser.ts)) and KPI/recommendation column detection ([src/lib/kpi-calculator.ts](src/lib/kpi-calculator.ts), [src/lib/ai-recommendations.ts](src/lib/ai-recommendations.ts)) all rely on **name-hint heuristics** — these hint lists are the place to extend support for new column vocabularies.
 
-## Development Notes
+### Routes
+- Pages: `/login`, `/dashboard` (list), `/dashboard/[id]` (single dataset view), `/dashboard/reports`, `/dashboard/settings`, `/admin/login`, `/admin/users`, `/admin/feedback`.
+- API: `/api/auth/*` (login/logout/me/settings/update-key), `/api/datasets` + `/datasets/[id]` + `/datasets/chunk` + `/datasets/recommendations` + `/datasets/[id]/clean`, `/api/rows` + `/rows/[id]`, `/api/feedback`, `/api/user/me`, `/api/admin/*`.
 
-### CSV Parsing Strategy
+## Conventions
+- Path alias `@/*` → `src/*`. shadcn aliases in [components.json](components.json) (`@/components/ui`, `@/lib/utils`, etc.).
+- File naming: Components PascalCase; lib utilities kebab-case; hooks `useX.ts`; types are PascalCase symbols in kebab-case files under `src/types/`.
+- API routes return a consistent envelope: `{ success: boolean, ... | error }`; clients branch on `result.success`.
+- All user-facing strings must have EN + MM entries in `src/locales/`.
 
-- Use PapaParse for robust CSV parsing
-- Detect column types by sampling first 100 rows
-- Handle edge cases: empty cells, mixed types, special characters
-
-### State Management
-
-- Use React Context for global state
-- Keep filtered data derived from base data + active filters
-- Avoid caching that could cause mismatch
-
-### Performance Optimization
-
-- Virtual scrolling for large tables (100k rows)
-- Debounce filter inputs
-- Memoize expensive calculations
-
----
-
-## File Naming Conventions
-
-- Components: PascalCase (`CsvUploader.tsx`)
-- Utilities: kebab-case (`csv-parser.ts`)
-- Hooks: camelCase with 'use' prefix (`useCsvData.ts`)
-- Types: PascalCase in kebab-case files (`types/csv.ts`)
-
----
-
-## Testing Strategy
-
-### Unit Tests
-
-- CSV parsing functions
-- Column type detection
-- KPI calculations
-- Filter logic
-
-### Integration Tests
-
-- CSV upload flow
-- Filter application
-- Export functionality
-
-### Manual Testing
-
-- UI responsiveness
-- Language switching
-- Large file handling
-
----
-
-## Error Messages (Bilingual)
-
-| Code        | English              | Myanmar                   |
-| ----------- | -------------------- | ------------------------- |
-| CSV_INVALID | Invalid CSV file     | CSV ဖိုင် မမှန်ကန်ပါ      |
-| CSV_EMPTY   | File is empty        | ဖိုင်တွင် ဒေတာ မရှိပါ     |
-| NO_HEADER   | Missing header row   | Header row မရှိပါ         |
-| PARSE_ERROR | Failed to parse file | ဖိုင် ဖတ်ရန် မအောင်မြင်ပါ |
-
----
-
-## Contact
-
-For questions about this project, refer to the PRD.md or contact the project author.
+## Environment (`.env`)
+`DATABASE_URL` (pooled, port 6543) and `DIRECT_URL` · `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` · `GEMINI_API_KEY` (server fallback) · `USER_JWT_SECRET` / `ADMIN_JWT_SECRET` (default to insecure dev values if unset — set them in any deployed env) · `GOOGLE_SHEETS_API_KEY`.
