@@ -41,8 +41,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const { language, setLanguage } = useLanguage();
   const router = useRouter();
 
-  const sidebarWidth = collapsed ? 68 : 240;
-
   const handleSignOut = async () => {
     await signOut();
     toast.success('Signed out');
@@ -59,7 +57,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
     <div className="min-h-screen bg-background">
       {/* Sidebar — hidden on mobile, shown on lg+ */}
       <div className="hidden lg:block">
-        <DashboardSidebar collapsed={collapsed} onToggle={() => setCollapsed(v => !v)} />
+        <DashboardSidebar
+          collapsed={collapsed}
+          onToggle={() => setCollapsed(value => !value)}
+        />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -73,17 +74,25 @@ export function DashboardShell({ children }: DashboardShellProps) {
       {/* Mobile sidebar drawer */}
       <div
         className={cn(
-          'fixed left-0 top-0 z-40 h-full lg:hidden transition-transform duration-300',
+          'fixed left-0 top-0 z-40 h-full w-[240px] lg:hidden transition-transform duration-200',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
+        id="mobile-sidebar"
       >
-        <DashboardSidebar collapsed={false} onToggle={() => setMobileOpen(false)} />
+        <DashboardSidebar
+          collapsed={false}
+          isMobileDrawer
+          onClose={() => setMobileOpen(false)}
+          onNavigate={() => setMobileOpen(false)}
+        />
       </div>
 
       {/* Main area — offset by sidebar width on desktop */}
       <div
-        className="flex flex-col min-h-screen transition-all duration-300"
-        style={{ paddingLeft: `${sidebarWidth}px` }}
+        className={cn(
+          'flex flex-col min-h-screen pl-0 transition-all duration-300',
+          collapsed ? 'lg:pl-[68px]' : 'lg:pl-[240px]'
+        )}
       >
         {/* ── Top bar ── */}
         <header className="sticky top-0 z-20 h-[60px] bg-white/98 dark:bg-slate-950/98 backdrop-blur-xl border-b border-violet-100/60 dark:border-violet-900/30 shadow-sm shadow-violet-100/30 flex items-center px-4 sm:px-6 gap-3">
@@ -93,6 +102,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
             className="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-violet-50 hover:text-violet-700 transition-colors shrink-0"
             onClick={() => setMobileOpen(v => !v)}
             aria-label="Toggle menu"
+            aria-controls="mobile-sidebar"
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

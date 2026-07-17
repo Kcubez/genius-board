@@ -40,6 +40,10 @@
   },
   "dashboard": {
     "title": "Genius Board",
+    "homeTitle": "Dashboard",
+    "homeSubtitle": "ဒေတာအချက်အလက်များ ကြည့်ရန် ဖိုင်တစ်ခု တင်ပါ",
+    "uploadFile": "ဖိုင်တင်ရန်",
+    "uploading": "တင်နေသည်...",
     "kpi": {
       "totalSales": "စုစုပေါင်း အရောင်း",
       "totalOrders": "စုစုပေါင်း အော်ဒါ",
@@ -170,6 +174,7 @@
   },
   "sheets": {
     "title": "Google Sheet ချိတ်ဆက်ရန်",
+    "shortTitle": "Google Sheet",
     "connectBtn": "ချိတ်ဆက်ရန်",
     "urlPlaceholder": "Google Sheet URL ကို ဤနေရာတွင် ထည့်ပါ...",
     "urlHelp": "Sheet ကို \"လင့်ရှိသူတိုင်း ကြည့်နိုင်ပါသည်\" ဟု သတ်မှတ်ထားရန်",

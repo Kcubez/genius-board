@@ -94,12 +94,10 @@ export default function AdminUsersPage() {
     const newErrors: Record<string, string> = {};
 
     // Email validation
-    if (isCreate) {
-      if (!formData.email) {
-        newErrors.email = 'Email is required';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = 'Invalid email format';
-      }
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
     }
 
     // Password validation
@@ -229,6 +227,7 @@ export default function AdminUsersPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          email: formData.email,
           name: formData.name || null,
           startDate: formData.startDate || null,
           endDate: formData.endDate || null,
@@ -617,8 +616,15 @@ export default function AdminUsersPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Email</Label>
-              <Input value={formData.email} disabled className="bg-muted" />
+              <Label htmlFor="edit-email">Email *</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={formData.email}
+                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                className={errors.email ? 'border-red-500' : ''}
+              />
+              {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-password">New Password (optional)</Label>

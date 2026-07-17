@@ -2,7 +2,15 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, FileSpreadsheet, BarChart3, Upload } from 'lucide-react';
+import {
+  Loader2,
+  FileSpreadsheet,
+  BarChart3,
+  Upload,
+  CircleDollarSign,
+  Package,
+  Users,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/context/LanguageContext';
@@ -80,14 +88,16 @@ export default function DashboardPage() {
 
   // Always show empty dashboard with zero data
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 sm:space-y-6">
       {/* Header with Upload Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Upload a file to see your data insights</p>
+      <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-balance text-2xl font-bold">{t('dashboard.homeTitle')}</h1>
+          <p className="mt-1 text-pretty text-sm text-muted-foreground sm:text-base">
+            {t('dashboard.homeSubtitle')}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
           <input
             ref={fileInputRef}
             type="file"
@@ -102,18 +112,18 @@ export default function DashboardPage() {
           <Button
             onClick={() => fileInputRef.current?.click()}
             size="lg"
-            className="gap-2 bg-violet-600 hover:bg-violet-700"
+            className="w-full gap-2 px-3 sm:w-auto sm:px-4"
             disabled={uploading}
           >
             {uploading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Uploading...
+                <Loader2 className="size-5 animate-spin" />
+                <span className="truncate">{t('dashboard.uploading')}</span>
               </>
             ) : (
               <>
-                <Upload className="h-5 w-5" />
-                Upload File
+                <Upload className="size-5" />
+                <span className="truncate">{t('dashboard.uploadFile')}</span>
               </>
             )}
           </Button>
@@ -121,33 +131,37 @@ export default function DashboardPage() {
             onClick={() => setSheetsOpen(true)}
             size="lg"
             variant="outline"
-            className="gap-2 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300 dark:border-green-950 dark:hover:bg-green-950/20"
+            className="w-full gap-2 overflow-hidden border-green-200 px-3 text-green-600 hover:border-green-300 hover:bg-green-50 hover:text-green-700 sm:w-auto sm:px-4 dark:border-green-950 dark:hover:bg-green-950/20"
             disabled={uploading}
           >
-            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm0-4H7v-2h5v2zm0-4H7V7h5v2zm5 8h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V7h3v2z"/>
             </svg>
-            {t('sheets.title')}
+            <span className="truncate">{t('sheets.shortTitle')}</span>
           </Button>
         </div>
       </div>
 
       {/* Empty KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[
-          { title: 'Total Sales', icon: '💰' },
-          { title: 'Total Orders', icon: '📦' },
-          { title: 'Total Quantity', icon: '📊' },
-          { title: 'Customers', icon: '👥' },
+          { title: t('dashboard.kpi.totalSales'), icon: CircleDollarSign },
+          { title: t('dashboard.kpi.totalOrders'), icon: Package },
+          { title: t('dashboard.kpi.totalQuantity'), icon: BarChart3 },
+          { title: t('dashboard.kpi.uniqueCustomers'), icon: Users },
         ].map((kpi, index) => (
-          <Card key={index} className="relative overflow-hidden">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{kpi.title}</p>
-                  <p className="text-2xl font-bold text-muted-foreground/50 mt-1">0</p>
+          <Card key={index} className="relative overflow-hidden py-0 lg:py-6">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-xs text-muted-foreground sm:text-sm" title={kpi.title}>
+                    {kpi.title}
+                  </p>
+                  <p className="mt-1 text-xl font-bold tabular-nums text-muted-foreground/50 sm:text-2xl">0</p>
                 </div>
-                <span className="text-2xl opacity-50">{kpi.icon}</span>
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300">
+                  <kpi.icon className="size-4" aria-hidden="true" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -158,22 +172,22 @@ export default function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Line Chart Placeholder */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="px-4 pb-2 sm:px-6">
             <CardTitle className="text-base text-muted-foreground/70">Sales Over Time</CardTitle>
           </CardHeader>
-          <CardContent className="h-70 flex flex-col items-center justify-center text-center">
-            <BarChart3 className="h-12 w-12 text-muted-foreground/30 mb-3" />
+          <CardContent className="flex h-44 flex-col items-center justify-center px-4 text-center sm:h-56 sm:px-6 lg:h-70">
+            <BarChart3 className="mb-3 size-10 text-muted-foreground/30 sm:size-12" />
             <p className="text-sm text-muted-foreground">Chart will appear here</p>
           </CardContent>
         </Card>
 
         {/* Bar Chart Placeholder */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="px-4 pb-2 sm:px-6">
             <CardTitle className="text-base text-muted-foreground/70">Top 10 by Value</CardTitle>
           </CardHeader>
-          <CardContent className="h-70 flex flex-col items-center justify-center text-center">
-            <BarChart3 className="h-12 w-12 text-muted-foreground/30 mb-3" />
+          <CardContent className="flex h-44 flex-col items-center justify-center px-4 text-center sm:h-56 sm:px-6 lg:h-70">
+            <BarChart3 className="mb-3 size-10 text-muted-foreground/30 sm:size-12" />
             <p className="text-sm text-muted-foreground">Chart will appear here</p>
           </CardContent>
         </Card>
@@ -181,12 +195,12 @@ export default function DashboardPage() {
 
       {/* Empty Data Table */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="px-4 pb-2 sm:px-6">
           <CardTitle className="text-base text-muted-foreground/70">Data Table</CardTitle>
         </CardHeader>
-        <CardContent className="h-50 flex flex-col items-center justify-center text-center">
-          <FileSpreadsheet className="h-12 w-12 text-muted-foreground/30 mb-3" />
-          <p className="text-sm text-muted-foreground">Your data will appear here after upload</p>
+        <CardContent className="flex h-40 flex-col items-center justify-center px-4 text-center sm:h-50 sm:px-6">
+          <FileSpreadsheet className="mb-3 size-10 text-muted-foreground/30 sm:size-12" />
+          <p className="text-pretty text-sm text-muted-foreground">Your data will appear here after upload</p>
         </CardContent>
       </Card>
 

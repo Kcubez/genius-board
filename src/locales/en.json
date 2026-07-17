@@ -40,6 +40,10 @@
   },
   "dashboard": {
     "title": "Genius Board",
+    "homeTitle": "Dashboard",
+    "homeSubtitle": "Upload a file to see your data insights",
+    "uploadFile": "Upload File",
+    "uploading": "Uploading...",
     "kpi": {
       "totalSales": "Total Sales",
       "totalOrders": "Total Orders",
@@ -170,6 +174,7 @@
   },
   "sheets": {
     "title": "Connect Google Sheet",
+    "shortTitle": "Google Sheet",
     "connectBtn": "Connect",
     "urlPlaceholder": "Paste Google Sheet URL here...",
     "urlHelp": "Sheet must be set to \"Anyone with the link can view\"",

@@ -2,15 +2,16 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   FolderOpen,
-  ChevronLeft,
-  ChevronRight,
   FileSpreadsheet,
   Loader2,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -48,7 +49,10 @@ const mainNav = [
 
 interface DashboardSidebarProps {
   collapsed: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
+  onNavigate?: () => void;
+  isMobileDrawer?: boolean;
+  onClose?: () => void;
 }
 
 /* ─── Tooltip wrapper — shows tooltip only when sidebar is collapsed ─── */
@@ -76,9 +80,14 @@ function SidebarTooltip({
   );
 }
 
-export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps) {
+export function DashboardSidebar({
+  collapsed,
+  onToggle,
+  onNavigate,
+  isMobileDrawer = false,
+  onClose,
+}: DashboardSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [recentDatasets, setRecentDatasets] = useState<RecentDataset[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
 
@@ -124,18 +133,69 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
       {/* ── Logo ── */}
       <div className={cn(
         'flex items-center h-[60px] border-b border-white/[0.06] shrink-0',
-        collapsed ? 'justify-center px-0' : 'px-5'
+        collapsed && !isMobileDrawer ? 'justify-center px-0' : 'justify-between px-5'
       )}>
-        <Link href="/dashboard" className="flex items-center gap-2.5 overflow-hidden group min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0 group-hover:shadow-violet-500/40 group-hover:scale-105 transition-all duration-200">
-            <LayoutDashboard className="h-4 w-4 text-white" />
-          </div>
-          {!collapsed && (
-            <span className="font-extrabold text-[15px] text-white whitespace-nowrap truncate">
-              Genius Board
-            </span>
-          )}
-        </Link>
+        {(!collapsed || isMobileDrawer) && (
+          <Link
+            href="/dashboard"
+            onClick={onNavigate}
+            className="flex items-center gap-2.5 overflow-hidden group min-w-0"
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0 group-hover:shadow-violet-500/40 group-hover:scale-105 transition-all duration-200">
+              <LayoutDashboard className="h-4 w-4 text-white" />
+            </div>
+            {!collapsed && (
+              <span className="font-extrabold text-[15px] text-white whitespace-nowrap truncate">
+                Genius Board
+              </span>
+            )}
+          </Link>
+        )}
+        {isMobileDrawer && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors duration-200 hover:bg-white/[0.08] hover:text-white"
+            aria-label="Close sidebar"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+        {!isMobileDrawer && collapsed && (
+          <SidebarTooltip collapsed label="Open sidebar">
+            <button
+              type="button"
+              onClick={onToggle}
+              className="group relative flex size-9 items-center justify-center text-slate-400 transition-colors duration-200 hover:text-white"
+              aria-label="Open sidebar"
+            >
+              <span className="absolute inset-0 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md shadow-violet-500/25 transition-opacity duration-200 group-hover:opacity-0" />
+              <LayoutDashboard className="relative size-4 text-white transition-opacity duration-200 group-hover:opacity-0" />
+              <PanelLeftOpen className="absolute size-5 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+            </button>
+          </SidebarTooltip>
+        )}
+        {!isMobileDrawer && !collapsed && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onToggle}
+                className="flex size-9 items-center justify-center rounded-lg text-slate-400 transition-colors duration-200 hover:bg-white/[0.08] hover:text-white"
+                aria-label="Close sidebar"
+              >
+                <PanelLeftClose className="size-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="right"
+              sideOffset={12}
+              className="rounded-lg px-3 py-1.5 text-xs font-medium shadow-xl"
+            >
+              Close sidebar
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* ── Scrollable body ── */}
@@ -158,6 +218,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
               <SidebarTooltip key={item.label} collapsed={collapsed} label={item.label}>
                 <Link
                   href={item.href}
+                  onClick={onNavigate}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
                     'relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200 group',
@@ -214,6 +275,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
                     <Link
                       key={ds.id}
                       href={`/dashboard/${ds.id}`}
+                      onClick={onNavigate}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
                         'relative flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-200 group cursor-pointer',
@@ -258,6 +320,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
                 <SidebarTooltip key={ds.id} collapsed={collapsed} label={ds.name}>
                   <Link
                     href={`/dashboard/${ds.id}`}
+                    onClick={onNavigate}
                     className={cn(
                       'relative flex justify-center p-3 rounded-xl transition-all duration-200 cursor-pointer',
                       active
@@ -281,28 +344,6 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
           </div>
         )}
       </div>
-
-
-
-      {/* ── Floating collapse tab on right edge ── */}
-      <button
-        onClick={onToggle}
-        className={cn(
-          'absolute -right-3.5 top-1/2 -translate-y-1/2 z-50',
-          'w-7 h-7 rounded-full bg-[#1E293B]',
-          'border border-white/[0.1]',
-          'shadow-md shadow-black/30',
-          'flex items-center justify-center cursor-pointer',
-          'text-slate-400 hover:text-white hover:border-violet-400/50 hover:bg-violet-600',
-          'transition-all duration-200 hover:scale-110'
-        )}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        {collapsed
-          ? <ChevronRight className="h-3.5 w-3.5" />
-          : <ChevronLeft className="h-3.5 w-3.5" />
-        }
-      </button>
     </aside>
   );
 }

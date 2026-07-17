@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+*.xlsx
+generate-gold-dataset.js
+
 # production
 /build
 

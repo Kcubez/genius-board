@@ -47,7 +47,31 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const { id } = await params;
     const body = await request.json();
-    const { name, isActive, password, startDate, endDate } = body;
+    const { email, name, isActive, password, startDate, endDate } = body;
+
+    let normalizedEmail: string | undefined;
+    if (email !== undefined) {
+      if (typeof email !== 'string') {
+        return NextResponse.json({ success: false, error: 'Invalid email format' }, { status: 400 });
+      }
+
+      normalizedEmail = email.trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(normalizedEmail)) {
+        return NextResponse.json({ success: false, error: 'Invalid email format' }, { status: 400 });
+      }
+
+      const existingUser = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+        select: { id: true },
+      });
+      if (existingUser && existingUser.id !== id) {
+        return NextResponse.json(
+          { success: false, error: 'User with this email already exists' },
+          { status: 409 }
+        );
+      }
+    }
 
     // Date validation
     if (startDate && endDate) {
@@ -71,6 +95,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     // Build update data
     const updateData: {
+      email?: string;
       name?: string | null;
       isActive?: boolean;
       passwordHash?: string;
@@ -78,6 +103,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       endDate?: Date | null;
     } = {};
 
+    if (normalizedEmail !== undefined) updateData.email = normalizedEmail;
     if (name !== undefined) updateData.name = name || null;
     if (isActive !== undefined) updateData.isActive = isActive;
     if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
